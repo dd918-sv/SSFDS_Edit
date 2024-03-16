@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block content %}
+    {% for restaurant in restaurants %}
+        <article class="media content-section">
+          <div class="media-body">
+            <div class="article-metadata">
+            </div>
+            <h2><a class="article-title" href="#">{{ restaurant.name}}</a></h2>
+            <p class="article-content">{{ restaurant.content }}</p>
+            <small class="text-muted">{{ restaurant.email }}</small>
+          </div>
+        </article>
+    {% endfor %}
+{% endblock content %}
