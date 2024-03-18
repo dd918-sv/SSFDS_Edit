@@ -1,3 +1,6 @@
+import os
+import secrets
+from PIL import Image
 from flask import render_template, url_for, flash, redirect, request
 from SSFDS import app, db, bcrypt
 from SSFDS.forms import RestaurantRegistrationForm, UserRegistrationForm, LoginForm, UpdateForm
@@ -92,12 +95,26 @@ def logout():
     logout_user()
     return redirect(url_for('home'))
 
+def save_picture(formPicture):
+    randomHex=secrets.token_hex(8)
+    _, fExt = os.path.splitext(formPicture.filename)
+    pictureName = randomHex + fExt
+    picturePath = os.path.join(app.root_path,'static/profile_pics', pictureName)
+    outputSize=(125,125)
+    resizedImage = Image.open(formPicture)
+    resizedImage.thumbnail(outputSize)
+    resizedImage.save(picturePath)
+    return pictureName
+
 @app.route("/account", methods=['GET', 'POST'])
 @login_required
 def account():
     form = UpdateForm()
     if form.validate_on_submit():
-        print('valid')
+        if form.picture.data:
+            pictureFile = save_picture(form.picture.data)
+            current_user.image = pictureFile
+            print(current_user.image)
         current_user.username = form.username.data
         current_user.email = form.email.data
         current_user.address = form.address.data
