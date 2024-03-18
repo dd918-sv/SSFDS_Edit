@@ -1,0 +1,69 @@
+{% extends 'layout.html' %}
+{% block content %}
+    <h1>Welcome {{ current_user.username }}</h1>
+    
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Email</h5>
+            <p class="card-text">{{ current_user.email }}</p>
+        </div>
+    </div>
+    
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Address</h5>
+            <p class="card-text">{{ current_user.address }}</p>
+        </div>
+    </div>
+    {%if current_user.__class__.__name__=='Restaurant'%}
+        <h1>List of Food Items</h1>
+        {%for dish in current_user.dishes%}
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        {{dish.name}}
+                    </h5>
+
+                    <p class="card-text">
+                        {{dish.description}}
+                    </p> 
+                    <p class="card-text">
+                        {{dish.price}}
+                    </p>
+                <button onclick="deleteDish('{{dish.id}}','{{dish.restaurantID}}')">Delete</button>
+
+                </div>
+            </div>                  
+        {%endfor%}
+        <button><a href="{{url_for('addDish')}}" style="text-decoration: none;color: black;" >Add a dish</a></button>
+    {%endif%}
+    <script>
+        function deleteDish(dishId, restaurantId) {
+    console.log('hi');
+    console.log('Deleting dish:', dishId, 'from restaurant:', restaurantId);
+    
+    fetch(`/delete-dish/${restaurantId}/${dishId}`, {
+        method: 'DELETE',
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.json(); // Parse JSON response
+        } else {
+            console.error('Error deleting dish');
+        }
+    })
+    .then(data => {
+        // Redirect to the account page using the redirect URL from the response
+        if (data && data.redirect_url) {
+            window.location.href = data.redirect_url;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+    </script>
+    
+    
+{% endblock %}
