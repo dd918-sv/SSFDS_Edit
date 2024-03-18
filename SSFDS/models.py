@@ -3,11 +3,16 @@ from flask_login import UserMixin
 
 @login_manager.user_loader
 def loadUser(userId):
-    return User.query.get(int(userId))
+    user=User.query.get(int(userId))
+    restaurant=Restaurant.query.get(int(userId))
+    if(user):
+        return user
+    else: 
+        return restaurant
 
-@login_manager.user_loader
-def loadRestaurant(restaurantId):
-    return Restaurant.query.get(int(restaurantId))
+# @login_manager.user_loader
+# def loadRestaurant(restaurantId):
+#     return Restaurant.query.get(int(restaurantId))
 
 class Restaurant(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
