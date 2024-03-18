@@ -1,21 +1,67 @@
-{% extends 'layout.html' %}
+{% extends "layout.html" %}
 {% block content %}
-    <h1>Welcome {{ current_user.username }}</h1>
-    
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Email</h5>
-            <p class="card-text">{{ current_user.email }}</p>
-        </div>
+<div class="content-section">
+    <div class="media">
+      <img class="rounded-circle account-img" src="{{ image }}">
+      <div class="media-body">
+        <h2 class="account-heading">{{current_user.username}}</h2>
+        <p class="text-secondary">User type: {{usertype}}</p>
+        <p class="text-secondary">{{current_user.email}}</p>
+      </div>
     </div>
-    
-    <div class="card mt-3">
-        <div class="card-body">
-            <h5 class="card-title">Address</h5>
-            <p class="card-text">{{ current_user.address }}</p>
-        </div>
-    </div>
-    {%if current_user.__class__.__name__=='Restaurant'%}
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+            <fieldset class="form-group">
+                <legend class="border-bottom mb-4">Account Info</legend>
+                <div class="form-group">
+                    {{ form.username.label(class="form-control-label") }}
+
+                    {% if form.username.errors %}
+                        {{ form.username(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.username.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.username(class="form-control form-control-lg") }}
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    {{ form.email.label(class="form-control-label") }}
+                    {% if form.email.errors %}
+                        {{ form.email(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.email.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.email(class="form-control form-control-lg") }}
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    {{ form.address.label(class="form-control-label") }}
+
+                    {% if form.address.errors %}
+                        {{ form.address(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.address.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.address(class="form-control form-control-lg") }}
+                    {% endif %}
+                </div>
+            </fieldset>
+            <div class="form-group">
+                {{ form.submit(class="btn btn-outline-info") }}
+            </div>
+        </form>
+  </div>
+  <!--edited-->
+  {%if current_user.__class__.__name__=='Restaurant'%}
         <h1>List of Food Items</h1>
         {%for dish in current_user.dishes%}
             <div class="card mt-3">
@@ -64,6 +110,4 @@
 }
 
     </script>
-    
-    
-{% endblock %}
+{% endblock content %}

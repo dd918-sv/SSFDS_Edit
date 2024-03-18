@@ -1,6 +1,6 @@
 from flask import render_template, url_for, flash, redirect, request, jsonify
 from SSFDS import app, db, bcrypt
-from SSFDS.forms import RestaurantRegistrationForm, UserRegistrationForm, LoginForm, AddDishForm
+from SSFDS.forms import RestaurantRegistrationForm, UserRegistrationForm, LoginForm, UpdateForm, AddDishForm
 from SSFDS.models import Restaurant, User, Dish
 from flask_login import login_user, current_user, logout_user, login_required
 
@@ -19,6 +19,8 @@ restaurants = [
     }
 ]
 
+def identity():
+    return len(User.query.all())+len(Restaurant.query.all())+1
 
 @app.route("/")
 @app.route("/home")
@@ -37,7 +39,7 @@ def restaurantregister():
     form = RestaurantRegistrationForm()
     if form.validate_on_submit():
         hashedPassword=bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        restaurant = Restaurant(username=form.username.data, email=form.email.data, password=hashedPassword, address=form.address.data)
+        restaurant = Restaurant(id= identity(), username=form.username.data, email=form.email.data, password=hashedPassword, address=form.address.data)
         db.session.add(restaurant)
         db.session.commit()
         flash('Your account has been created! You can now login', 'success')
@@ -51,7 +53,7 @@ def register():
     form = UserRegistrationForm()
     if form.validate_on_submit():
         hashedPassword=bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        restaurant = User(username=form.username.data, email=form.email.data, password=hashedPassword, address=form.address.data, ngo=form.ngo.data)
+        restaurant = User(id= identity(), username=form.username.data, email=form.email.data, password=hashedPassword, address=form.address.data, ngo=form.ngo.data)
         db.session.add(restaurant)
         db.session.commit()
         flash('Your account has been created! You can now login', 'success')
@@ -68,7 +70,7 @@ def login():
         restaurant=Restaurant.query.filter_by(email=form.email.data).first()
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             login_user(user, remember=form.remember.data)
-            flash('Login Successful','success') #doubtful line
+            flash('Login Successful','success') 
             next_page = request.args.get('next')
             return redirect(next_page) if next_page else redirect(url_for('home'))
         elif restaurant and bcrypt.check_password_hash(restaurant.password, form.password.data):
@@ -90,11 +92,34 @@ def logout():
     logout_user()
     return redirect(url_for('home'))
 
-@app.route("/account")
+@app.route("/account", methods=['GET', 'POST'])
 @login_required
 def account():
-    return render_template('account.html', title='Account')
+    form = UpdateForm()
+    if form.validate_on_submit():
+        print('valid')
+        current_user.username = form.username.data
+        current_user.email = form.email.data
+        current_user.address = form.address.data
+        db.session.commit()
+        flash('Your account has been updated!','success')
+        return redirect(url_for('account'))
+    elif request.method == 'GET':
+        form.username.data = current_user.username
+        form.email.data = current_user.email
+        form.address.data = current_user.address
+    image = url_for('static', filename='profile_pics/' + current_user.image)
+    usertype = None
+    if isinstance(current_user, User):
+        if current_user.ngo == 'True':
+            usertype = "NGO"
+        else:
+            usertype = "Customer"
+    else:
+        usertype = "Restaurant"
+    return render_template('account.html', image = image, form = form, usertype = usertype)
 
+#edited
 @app.route("/addDish.html", methods=['GET', 'POST'])
 @login_required
 def addDish():
@@ -116,3 +141,5 @@ def delete_dish(restaurant_id, dish_id):
         flash('The dish has been deleted!', 'success')
         print('hi')
         return jsonify({'redirect_url': url_for('account')}), 200
+        
+    
