@@ -1,0 +1,15 @@
+{%extends 'layout.html'%}
+{%block content%}
+<h1 style="margin: auto;">Welcome to {{restaurant.username}}</h1>
+        {%for dish in dishes%}
+        <article class="media content-section">
+            <div class="media-body">
+                <div class="article-metadata">
+                    <h2>{{ dish.name }}</h2>
+                    <p class="article-content">Rs. {{ dish.price }}</p>
+                </div>
+                <p class="article-content">{{ dish.description }}</p>
+            </div>
+        </article>
+    {%endfor%}
+{%endblock content%}

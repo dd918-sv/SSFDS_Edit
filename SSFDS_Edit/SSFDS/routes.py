@@ -26,7 +26,7 @@ def identity():
 @app.route("/")
 @app.route("/home")
 def home():
-    return render_template('home.html', restaurants=restaurants)
+    return render_template('home.html', restaurants=Restaurant.query.all(),title='Home')
 
 
 @app.route("/about")
@@ -189,3 +189,10 @@ def reset_token(token):
     return render_template('resetPassword.html',title='Reset Password',form=form)
         
     
+@app.route("/menu/<int:restaurant_id>")
+@login_required
+def menu(restaurant_id):
+    print('hi')
+    restaurant=Restaurant.query.get(restaurant_id)
+    dishes=Dish.query.filter_by(restaurantID=restaurant_id).all()
+    return render_template('menu.html',restaurant=restaurant,dishes=dishes)
