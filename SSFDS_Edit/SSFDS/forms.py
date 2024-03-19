@@ -89,3 +89,19 @@ class AddDishForm(FlaskForm):
     price=IntegerField('Price',validators=[DataRequired()])
     description = StringField('Description',validators=[Length(min=0,max=30)])
     submit=SubmitField('Add Dish')
+
+class ForgotPasswordForm(FlaskForm):
+    email=StringField('Email',validators=[DataRequired(),Email()])
+    submit=SubmitField('Reset Password')
+
+    def validate_email(self, email):
+        user = User.query.filter_by(email=email.data).first()
+        restaurant = Restaurant.query.filter_by(email=email.data).first()
+
+        if user is None and restaurant is None:
+            raise ValidationError('There is no account with that email. You must register first.')
+
+class ResetPasswordForm(FlaskForm):
+    password=PasswordField('Password',validators=[DataRequired()])
+    confirmPassword=PasswordField('Confirm Password',validators=[DataRequired(),EqualTo('password')])
+    submit=SubmitField('Reset Password')

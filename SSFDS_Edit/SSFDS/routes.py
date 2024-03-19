@@ -1,10 +1,10 @@
 from flask import render_template, url_for, flash, redirect, request, jsonify
-from SSFDS import app, db, bcrypt
-from SSFDS.forms import RestaurantRegistrationForm, UserRegistrationForm, LoginForm, UpdateForm, AddDishForm
+from SSFDS import app, db, bcrypt,mail
+from SSFDS.forms import RestaurantRegistrationForm, UserRegistrationForm, LoginForm, UpdateForm, AddDishForm, ForgotPasswordForm, ResetPasswordForm
 from SSFDS.models import Restaurant, User, Dish
 from flask_login import login_user, current_user, logout_user, login_required
-
-
+from itsdangerous import URLSafeTimedSerializer as Serializer
+from flask_mail import Message
 
 restaurants = [
     {
@@ -18,6 +18,7 @@ restaurants = [
         'content': 'Fi second content'
     }
 ]
+
 
 def identity():
     return len(User.query.all())+len(Restaurant.query.all())+1
@@ -141,5 +142,50 @@ def delete_dish(restaurant_id, dish_id):
         flash('The dish has been deleted!', 'success')
         print('hi')
         return jsonify({'redirect_url': url_for('account')}), 200
+    
+def sendMail(user):
+    token=user.get_token()
+    msg=Message('Password Reset Request',recipients=[user.email],sender='priorityencoder@gmail.com')
+    msg.body=f'''To reset your password, visit the following link:
+    {url_for('reset_token',token=token,_external=True)}
+    '''
+    mail.send(msg)
+
+@app.route('/forgotPassword', methods=['GET', 'POST'])
+def forgotPassword():
+    form=ForgotPasswordForm()
+    if form.validate_on_submit():
+        user=User.query.filter_by(email=form.email.data).first()
+        restaurant=Restaurant.query.filter_by(email=form.email.data).first()
+        if user:
+            sendMail(user)
+            flash('An email has been sent to your email address with instructions to reset your password','success')
+            return redirect(url_for('login'))
+        elif restaurant:
+            sendMail(restaurant)
+            flash('An email has been sent to your email address with instructions to reset your password','success')
+            return redirect(url_for('login')) 
+        else:
+            flash('Email not found','danger')
+    return render_template('forgotPassword.html',title='Reset Password',form=form)
+
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_token(token):
+    user=User.verify_token(token)
+    restaurant=Restaurant.verify_token(token)
+    if user is None and restaurant is None:
+        flash('That is an invalid or expired token','warning')
+        return redirect(url_for('forgotPassword'))
+    form=ResetPasswordForm()
+    if form.validate_on_submit():
+        hashedPassword=bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        if user is not None:
+            user.password=hashedPassword
+        elif restaurant is not None:
+            restaurant.password=hashedPassword
+        db.session.commit()
+        flash('Your password has been updated! You can now login', 'success')
+        return redirect(url_for('login'))
+    return render_template('resetPassword.html',title='Reset Password',form=form)
         
     

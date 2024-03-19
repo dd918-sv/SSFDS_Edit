@@ -1,5 +1,7 @@
-from SSFDS import db, login_manager
+from SSFDS import db, login_manager,app
 from flask_login import UserMixin
+from itsdangerous import URLSafeTimedSerializer as Serializer
+from datetime import datetime, timedelta
 
 @login_manager.user_loader
 def loadUser(userId):
@@ -30,6 +32,25 @@ class Restaurant(db.Model, UserMixin):
     def __repr__(self):
         return f"Restaurant('{self.username}', '{self.email}', '{self.image}')"
     
+    def get_token(self, expires_sec=300):
+        serial = Serializer(app.config['SECRET_KEY'])
+        expires_at = datetime.now() + timedelta(seconds=expires_sec)
+        return serial.dumps({'user_id': self.id, 'exp': expires_at.isoformat()})
+    
+    @staticmethod
+    def verify_token(token):
+        serial = Serializer(app.config['SECRET_KEY'])
+        try:
+            data = serial.loads(token)
+            expires_at = datetime.fromisoformat(data.get('exp'))
+            if datetime.now() <= expires_at:
+                user_id = data['user_id']
+                return Restaurant.query.get(user_id)
+        except:
+            pass
+        return None
+
+    
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
@@ -42,6 +63,24 @@ class User(db.Model, UserMixin):
     ngo = db.Column(db.Boolean)
     def __repr__(self):
         return f"User('{self.username}', '{self.email}', '{self.image}, '{self.ngo}')"
+    
+    def get_token(self,expires_sec=300):
+        serial=Serializer(app.config['SECRET_KEY'])
+        expires_at = datetime.now() + timedelta(seconds=expires_sec)
+        return serial.dumps({'user_id': self.id, 'exp': expires_at.isoformat()})
+    
+    @staticmethod
+    def verify_token(token):
+        serial = Serializer(app.config['SECRET_KEY'])
+        try:
+            data = serial.loads(token)
+            expires_at = datetime.fromisoformat(data.get('exp'))
+            if datetime.now() <= expires_at:
+                user_id = data['user_id']
+                return User.query.get(user_id)
+        except:
+            pass
+        return None
 
 class Dish(db.Model):
     id = db.Column(db.Integer, primary_key=True)
