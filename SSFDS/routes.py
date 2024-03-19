@@ -28,8 +28,7 @@ def identity():
 @app.route("/")
 @app.route("/home")
 def home():
-    return render_template('home.html', restaurants=restaurants)
-
+    return render_template('home.html', restaurants=Restaurant.query.all())
 
 @app.route("/about")
 def about():

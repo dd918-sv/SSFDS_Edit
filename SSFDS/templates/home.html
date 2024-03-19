@@ -3,11 +3,8 @@
     {% for restaurant in restaurants %}
         <article class="media content-section">
           <div class="media-body">
-            <div class="article-metadata">
-              <a class="mr-2" href="#">{{ restaurant.dishes }}</a>
-            </div>
-            <h2><a class="article-title" href="#">{{ restaurant.name }}</a></h2>
-            <p class="article-content">{{ restaurant.description }}</p>
+            <h2><a class="article-title" href="#">{{ restaurant.username }}</a></h2>
+            <p class="article-content">{{ restaurant.address }}</p>
           </div>
         </article>
     {% endfor %}
