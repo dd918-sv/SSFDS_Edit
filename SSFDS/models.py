@@ -28,6 +28,7 @@ class Restaurant(db.Model, UserMixin):
     longitude = db.Column(db.Double, nullable=True)
     content = db.Column(db.Text, nullable=True)
     dishes = db.relationship('Dish', backref='restaurant', lazy=True)
+    transaction = db.relationship('Transaction', backref='restaurant', lazy=True)
 
     def __repr__(self):
         return f"Restaurant('{self.username}', '{self.email}', '{self.image}')"
@@ -61,6 +62,8 @@ class User(db.Model, UserMixin):
     longitude = db.Column(db.Double, nullable=True)
     password = db.Column(db.String(60), nullable=False)
     ngo = db.Column(db.Boolean)
+    transaction = db.relationship('Transaction', backref='user', lazy=True)
+
     def __repr__(self):
         return f"User('{self.username}', '{self.email}', '{self.image}, '{self.ngo}')"
     
@@ -89,6 +92,23 @@ class Dish(db.Model):
     description = db.Column(db.Text, nullable=False)
     image = db.Column(db.String(20), nullable=False, default='default.jpg')
     restaurantID = db.Column(db.Integer, db.ForeignKey('restaurant.id'), nullable=False)
+    order = db.relationship('Order', backref='dish', lazy=True)
 
     def __repr__(self):
         return f"Dish('{self.name}', '{self.price}', '{self.description}', '{self.image}')"
+
+class Transaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    userID = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    restaurantID = db.Column(db.Integer, db.ForeignKey('restaurant.id'), nullable=True)
+    amount = db.Column(db.Float, nullable=False, default=0)
+    orders = db.relationship('Order', backref='transaction', lazy=True)
+    orderplaced = db.Column(db.Boolean)
+    paymentMethod = db.Column(db.String(20), nullable=False)
+    paid = db.Column(db.Boolean)
+    
+class Order(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    dishID = db.Column(db.Integer, db.ForeignKey('dish.id'), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    transactionID = db.Column(db.Integer, db.ForeignKey('transaction.id'), nullable=False)

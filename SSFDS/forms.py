@@ -4,6 +4,7 @@ from flask_login import current_user
 from wtforms import StringField, PasswordField, SubmitField, BooleanField,IntegerField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from SSFDS.models import User, Restaurant
+from SSFDS import bcrypt
 
 
 class RestaurantRegistrationForm(FlaskForm):
@@ -65,8 +66,13 @@ class UpdateForm(FlaskForm):
                         validators=[DataRequired(), Email()])
     address = StringField('Address', validators=[DataRequired(), Length(min=10, max=200)])
     picture= FileField('Update Profile Picture', validators=[FileAllowed(['jpg', 'png', 'jpeg'])])
+    password = PasswordField('Enter Password To Update Details', validators=[DataRequired()])
     submit = SubmitField('Update')
     
+    def validate_password(self, password):
+        if not bcrypt.check_password_hash(current_user.password, password.data):
+            raise ValidationError('Invalid password')
+
     def validate_username(self, username):
         user = current_user
         if username.data!= current_user.username and isinstance(user, User):

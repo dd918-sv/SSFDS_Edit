@@ -2,7 +2,7 @@ import os
 import secrets
 from PIL import Image
 from flask import render_template, url_for, flash, redirect, request, jsonify
-from SSFDS import app, db, bcrypt,mail
+from SSFDS import app, db, bcrypt, mail
 from SSFDS.forms import RestaurantRegistrationForm, UserRegistrationForm, LoginForm, UpdateForm, AddDishForm, ForgotPasswordForm, ResetPasswordForm
 from SSFDS.models import Restaurant, User, Dish
 from flask_login import login_user, current_user, logout_user, login_required
@@ -88,7 +88,7 @@ def login():
 def prints():
     print(User.query.all())
     return "print"
-
+ 
 @app.route("/logout")
 def logout():
     logout_user()
