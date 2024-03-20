@@ -63,6 +63,8 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(60), nullable=False)
     ngo = db.Column(db.Boolean)
     transaction = db.relationship('Transaction', backref='user', lazy=True)
+    DonorUser = db.relationship('Donation', foreign_keys='[Donation.userID]', backref='normal_user', lazy=True)
+    ReceiverNGO = db.relationship('Donation', foreign_keys='[Donation.ngoID]', backref='ngo_user', lazy=True)
 
     def __repr__(self):
         return f"User('{self.username}', '{self.email}', '{self.image}, '{self.ngo}')"
@@ -104,6 +106,7 @@ class Transaction(db.Model):
     amount = db.Column(db.Float, nullable=False, default=0)
     orders = db.relationship('Order', backref='transaction', lazy=True)
     orderplaced = db.Column(db.Boolean)
+    date = db.Column(db.DateTime, nullable=True)
     paymentMethod = db.Column(db.String(20), nullable=False)
     paid = db.Column(db.Boolean)
     
@@ -112,3 +115,13 @@ class Order(db.Model):
     dishID = db.Column(db.Integer, db.ForeignKey('dish.id'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     transactionID = db.Column(db.Integer, db.ForeignKey('transaction.id'), nullable=False)
+
+class Donation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    userID = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    ngoID = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    amount = db.Column(db.Float, nullable=False, default=0)
+    date = db.Column(db.DateTime, nullable=True)
+
+    def __repr__(self):
+        return f"Donation('{self.normal_user}', '{self.ngo_user}', '{self.amount}', '{self.date}')"

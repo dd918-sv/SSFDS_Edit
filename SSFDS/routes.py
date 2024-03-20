@@ -4,7 +4,7 @@ from PIL import Image
 from flask import render_template, url_for, flash, redirect, request, jsonify
 from SSFDS import app, db, bcrypt, mail
 from SSFDS.forms import RestaurantRegistrationForm, UserRegistrationForm, LoginForm, UpdateForm, AddDishForm, ForgotPasswordForm, ResetPasswordForm
-from SSFDS.models import Restaurant, User, Dish
+from SSFDS.models import Restaurant, User, Dish, Transaction, Order, Donation
 from flask_login import login_user, current_user, logout_user, login_required
 from itsdangerous import URLSafeTimedSerializer as Serializer
 from flask_mail import Message
@@ -55,8 +55,8 @@ def register():
     form = UserRegistrationForm()
     if form.validate_on_submit():
         hashedPassword=bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        restaurant = User(id= identity(), username=form.username.data, email=form.email.data, password=hashedPassword, address=form.address.data, ngo=form.ngo.data)
-        db.session.add(restaurant)
+        user = User(id= identity(), username=form.username.data, email=form.email.data, password=hashedPassword, address=form.address.data, ngo=form.ngo.data)
+        db.session.add(user)
         db.session.commit()
         flash('Your account has been created! You can now login', 'success')
         return redirect(url_for('login'))
@@ -83,11 +83,6 @@ def login():
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')
     return render_template('login.html', title='Login', form=form)
-
-@app.route("/print")
-def prints():
-    print(User.query.all())
-    return "print"
  
 @app.route("/logout")
 def logout():
@@ -127,7 +122,7 @@ def account():
     image = url_for('static', filename='profile_pics/' + current_user.image)
     usertype = None
     if isinstance(current_user, User):
-        if current_user.ngo == 'True':
+        if current_user.ngo == True:
             usertype = "NGO"
         else:
             usertype = "Customer"
@@ -136,7 +131,7 @@ def account():
     return render_template('account.html', image = image, form = form, usertype = usertype)
 
 #edited
-@app.route("/addDish.html", methods=['GET', 'POST'])
+@app.route("/addDish", methods=['GET', 'POST'])
 @login_required
 def addDish():
     form=AddDishForm()
@@ -204,3 +199,27 @@ def reset_token(token):
     return render_template('resetPassword.html',title='Reset Password',form=form)
         
     
+@app.route('/DonationsReceived')
+@login_required
+def DonationsReceived():
+    user = current_user
+    if(isinstance(user, User) and current_user.ngo==True):
+        donations=Donation.query.filter_by(ngoID=current_user.id).all()
+        return render_template('DonationsReceived.html',title='Donations Received',donations=donations)
+    else:
+        return redirect(url_for('home'))
+
+@app.route('/DonationsGiven')
+@login_required
+def DonationsGiven():
+    user = current_user
+    if(isinstance(user, User) and current_user.ngo==False):
+        donations=Donation.query.filter_by(userID=current_user.id).all()
+        return render_template('DonationsGiven.html',title='Donations Given',donations=donations)
+    else:
+        return redirect(url_for('home'))
+    
+@app.route('/Donate')
+@login_required
+def Donate():
+    return "working"
