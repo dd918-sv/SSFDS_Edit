@@ -9,7 +9,34 @@
                     <p class="article-content">Rs. {{ dish.price }}</p>
                 </div>
                 <p class="article-content">{{ dish.description }}</p>
+                <button class="btn btn-outline-info" onclick="addToCart('{{restaurant.id}}','{{current_user.id}}','{{dish.id}}',this)">Add to Cart</button>
             </div>
         </article>
     {%endfor%}
+    <script>
+        function addToCart(restaurant_id, user_id, dish_id,button) {
+        fetch(`/addToCart/${restaurant_id}/${user_id}/${dish_id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                button.textContent = data.message;
+                // const flashMessage = document.createElement('div');
+                // flashMessage.className = 'alert alert-success';
+                // flashMessage.textContent = data.message;
+                // document.body.prepend(flashMessage);
+            } else {
+                // Display error message
+                button.textContent = data.message;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+    </script>
 {%endblock content%}

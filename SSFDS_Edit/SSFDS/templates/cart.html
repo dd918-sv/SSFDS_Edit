@@ -1,0 +1,23 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="container">
+    <h1>My Orders</h1>
+    {% for order in orders %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5 class="card-title">Dish: {{  }}</h5>
+                </div>
+                <div class="col-md-4">
+                    <p class="card-text">Quantity: {{ order.quantity }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="card-text">Price: {{ order.price }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock content %}

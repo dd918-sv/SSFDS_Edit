@@ -1,7 +1,10 @@
+import os
+import secrets
+from PIL import Image
 from flask import render_template, url_for, flash, redirect, request, jsonify
 from SSFDS import app, db, bcrypt,mail
 from SSFDS.forms import RestaurantRegistrationForm, UserRegistrationForm, LoginForm, UpdateForm, AddDishForm, ForgotPasswordForm, ResetPasswordForm
-from SSFDS.models import Restaurant, User, Dish
+from SSFDS.models import Restaurant, User, Dish, Transaction, Order, Donation
 from flask_login import login_user, current_user, logout_user, login_required
 from itsdangerous import URLSafeTimedSerializer as Serializer
 from flask_mail import Message
@@ -19,7 +22,6 @@ restaurants = [
     }
 ]
 
-
 def identity():
     return len(User.query.all())+len(Restaurant.query.all())+1
 
@@ -27,7 +29,6 @@ def identity():
 @app.route("/home")
 def home():
     return render_template('home.html', restaurants=Restaurant.query.all(),title='Home')
-
 
 @app.route("/about")
 def about():
@@ -83,22 +84,31 @@ def login():
             flash('Login Unsuccessful. Please check email and password', 'danger')
     return render_template('login.html', title='Login', form=form)
 
-@app.route("/print")
-def prints():
-    print(User.query.all())
-    return "print"
-
 @app.route("/logout")
 def logout():
     logout_user()
     return redirect(url_for('home'))
+
+def save_picture(formPicture):
+    randomHex=secrets.token_hex(8)
+    _, fExt = os.path.splitext(formPicture.filename)
+    pictureName = randomHex + fExt
+    picturePath = os.path.join(app.root_path,'static/profile_pics', pictureName)
+    outputSize=(125,125)
+    resizedImage = Image.open(formPicture)
+    resizedImage.thumbnail(outputSize)
+    resizedImage.save(picturePath)
+    return pictureName
 
 @app.route("/account", methods=['GET', 'POST'])
 @login_required
 def account():
     form = UpdateForm()
     if form.validate_on_submit():
-        print('valid')
+        if form.picture.data:
+            pictureFile = save_picture(form.picture.data)
+            current_user.image = pictureFile
+            print(current_user.image)
         current_user.username = form.username.data
         current_user.email = form.email.data
         current_user.address = form.address.data
@@ -188,11 +198,69 @@ def reset_token(token):
         return redirect(url_for('login'))
     return render_template('resetPassword.html',title='Reset Password',form=form)
         
+
+@app.route('/DonationsReceived')
+@login_required
+def DonationsReceived():
+    user = current_user
+    if(isinstance(user, User) and current_user.ngo==True):
+        donations=Donation.query.filter_by(ngoID=current_user.id).all()
+        return render_template('DonationsReceived.html',title='Donations Received',donations=donations)
+    else:
+        return redirect(url_for('home'))
+
+@app.route('/DonationsGiven')
+@login_required
+def DonationsGiven():
+    user = current_user
+    if(isinstance(user, User) and current_user.ngo==False):
+        donations=Donation.query.filter_by(userID=current_user.id).all()
+        return render_template('DonationsGiven.html',title='Donations Given',donations=donations)
+    else:
+        return redirect(url_for('home'))
     
+@app.route('/Donate')
+@login_required
+def Donate():
+    return "working"
+  
 @app.route("/menu/<int:restaurant_id>")
 @login_required
 def menu(restaurant_id):
-    print('hi')
     restaurant=Restaurant.query.get(restaurant_id)
     dishes=Dish.query.filter_by(restaurantID=restaurant_id).all()
     return render_template('menu.html',restaurant=restaurant,dishes=dishes)
+
+@app.route("/addToCart/<int:restaurant_id>/<int:user_id>/<int:dish_id>",methods=['POST','GET'])
+@login_required
+def addToCart(restaurant_id,user_id,dish_id):
+    try:
+        checkOrder=Order.query.filter_by(dishID=dish_id).all()
+        if checkOrder:
+            for order in checkOrder:
+                if order.transaction.userID==user_id:
+                    print('added')
+                    print(order.quantity)
+                    return jsonify({'success': True,'message':'Already Added!'})
+    
+        order=Order(dishID=dish_id,quantity=1)
+        transaction = Transaction(userID=user_id, restaurantID=restaurant_id, paymentMethod='cash', paid=False, orderplaced=False,discount=0)
+        if(isinstance(current_user,User) and current_user.ngo==True):
+            transaction.discount =40
+        else:
+            transaction.discount=10
+        db.session.add(transaction)
+        transaction.orders.append(order)
+        db.session.commit()
+        print('added')
+        return jsonify({'success': True, 'message': 'Successfully Added','quantity':1})
+    except Exception as e:
+        return jsonify({'success': False, 'message': 'Error adding dish:'})
+    
+@app.route("/goToCart",methods=['GET','POST'])
+@login_required
+def goToCart():
+    user_id=current_user.id
+    orders=Order.query.join(Transaction).filter(Transaction.userID==user_id).all()
+    return render_template('cart.html',orders=orders)
+
