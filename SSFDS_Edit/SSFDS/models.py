@@ -18,14 +18,14 @@ def loadUser(userId):
 
 class Restaurant(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(20), unique=True, nullable=False)
+    username = db.Column(db.String(20), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     image = db.Column(db.String(20), nullable=False, default='default.jpg')
     password = db.Column(db.String(60), nullable=False)
     open=db.Column(db.Boolean)
     address = db.Column(db.String(120), nullable=False)
-    latitude = db.Column(db.Double, nullable=True)
-    longitude = db.Column(db.Double, nullable=True)
+    latitude = db.Column(db.Double, nullable=True, default=1000)
+    longitude = db.Column(db.Double, nullable=True, default=1000)
     content = db.Column(db.Text, nullable=True)
     dishes = db.relationship('Dish', backref='restaurant', lazy=True)
     transaction = db.relationship('Transaction', backref='restaurant', lazy=True)
@@ -129,4 +129,4 @@ class Donation(db.Model):
     date = db.Column(db.DateTime, nullable=True)
 
     def __repr__(self):
-        return f"Donation('{self.userID}', '{self.ngoID}', '{self.amount}', '{self.date}')"
+        return f"Donation('{self.normal_user}', '{self.ngo_user}', '{self.amount}', '{self.date}')"

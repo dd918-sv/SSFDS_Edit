@@ -1,11 +1,12 @@
 {% extends "layout.html" %}
 {% block content %}
-    {% for restaurant in restaurants %}
+    {% for donation in donations %}
         <article class="media content-section">
+          <img class="rounded-circle account-img" src="{{ url_for('static', filename='profile_pics/' + donation.normal_user.image) }}">
           <div class="media-body">
-            <h2><a class="article-title" href="#">{{ donations.normal_user.username }}</a></h2>
-            <p class="article-content">{{ donations.amount }}</p>
-            <p class="article-content">{{ donations.date }}</p>
+            <h2><a class="account-heading" href="#">{{ donation.normal_user.username }}</a></h2>
+            <p class="text-secondary">₹{{ donation.amount }}</p>
+            <p class="text-secondary">{{ donation.date }}</p>
           </div>
         </article>
     {% endfor %}

@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from flask_login import current_user
-from wtforms import StringField, PasswordField, SubmitField, BooleanField,IntegerField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField,FloatField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from SSFDS.models import User, Restaurant
 from SSFDS import bcrypt
@@ -78,7 +78,7 @@ class UpdateForm(FlaskForm):
             raise ValidationError('Invalid password')
     
     def validate_username(self, username):
-        if username.data!= current_user.username:
+        if username.data!= current_user.username and isinstance(current_user,User):
             user = User.query.filter_by(username=username.data).first()
             if user:
                 raise ValidationError('That username is taken. Please choose a different one.')
@@ -94,7 +94,7 @@ class UpdateForm(FlaskForm):
 
 class AddDishForm(FlaskForm):
     name=StringField('Dish Name',validators=[DataRequired()])
-    price=IntegerField('Price',validators=[DataRequired()])
+    price=FloatField('Price',validators=[DataRequired()])
     description = StringField('Description',validators=[Length(min=0,max=30)])
     submit=SubmitField('Add Dish')
 
@@ -113,3 +113,13 @@ class ResetPasswordForm(FlaskForm):
     password=PasswordField('Password',validators=[DataRequired()])
     confirmPassword=PasswordField('Confirm Password',validators=[DataRequired(),EqualTo('password')])
     submit=SubmitField('Reset Password')
+
+class DonationForm(FlaskForm):
+    amount=FloatField('Amount',validators=[DataRequired(),])
+    submit=SubmitField('Donate')
+
+    def validate_amount(self, amount):
+        if amount.data<100:
+            raise ValidationError('Minimum amount is 100')
+        elif amount.data>100000000:
+            raise ValidationError('Maximum amount is 100000000')

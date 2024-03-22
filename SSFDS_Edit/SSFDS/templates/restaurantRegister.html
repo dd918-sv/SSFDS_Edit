@@ -72,6 +72,14 @@
                         {{ form.confirm_password(class="form-control form-control-lg") }}
                     {% endif %}
                 </div>
+<div class ="form-group">
+                <button class="btn btn-outline-info" onclick="openMap()">Choose Location</button>
+                <script>
+                    function openMap() {
+                    window.open('/map', 'mapPopup', 'width=600,height=400');
+                    }
+                </script>
+                </div>
             </fieldset>
             <div class="form-group">
                 {{ form.submit(class="btn btn-outline-info") }}
