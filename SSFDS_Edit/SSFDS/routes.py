@@ -257,10 +257,24 @@ def addToCart(restaurant_id,user_id,dish_id):
     except Exception as e:
         return jsonify({'success': False, 'message': 'Error adding dish:'})
     
-@app.route("/goToCart",methods=['GET','POST'])
+@app.route("/goToCart", methods=['GET', 'POST'])
 @login_required
 def goToCart():
-    user_id=current_user.id
-    orders=Order.query.join(Transaction).filter(Transaction.userID==user_id).all()
-    return render_template('cart.html',orders=orders)
+    user_id = current_user.id
+    orders = Order.query.join(Transaction).filter(Transaction.userID == user_id, Transaction.paid == False).all()
+    
+    # Fetch the price per unit for each order and store it in a list
+    # prices_per_unit = [order.dish.price for order in orders]
+    
+    return render_template('cart.html', orders=orders)
 
+
+@app.route("/remove_order/<int:order_id>", methods=['POST'])
+@login_required
+def remove_order(order_id):
+    order = Order.query.get_or_404(order_id)
+    if order:
+        db.session.delete(order)
+        db.session.commit()
+        flash('The order has been removed!', 'success')
+    return redirect(url_for('goToCart'))
