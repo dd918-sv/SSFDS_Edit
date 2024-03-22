@@ -1,26 +1,17 @@
 import os
 import secrets
+from datetime import datetime
 from PIL import Image
 from flask import render_template, url_for, flash, redirect, request, jsonify
 from SSFDS import app, db, bcrypt, mail
-from SSFDS.forms import RestaurantRegistrationForm, UserRegistrationForm, LoginForm, UpdateForm, AddDishForm, ForgotPasswordForm, ResetPasswordForm
+from SSFDS.forms import RestaurantRegistrationForm, UserRegistrationForm, LoginForm, UpdateForm, AddDishForm, ForgotPasswordForm, ResetPasswordForm, DonationForm
 from SSFDS.models import Restaurant, User, Dish, Transaction, Order, Donation
 from flask_login import login_user, current_user, logout_user, login_required
 from itsdangerous import URLSafeTimedSerializer as Serializer
 from flask_mail import Message
 
-restaurants = [
-    {
-        'name': 'Corey Schafer',    
-        'description': 'Blog Post 1',
-        'content': 'First post content'
-    },
-    {
-        'name': 'la chafer',
-        'description': 'fa  Post 1',
-        'content': 'Fi second content'
-    }
-]
+
+location = False
 
 def identity():
     return len(User.query.all())+len(Restaurant.query.all())+1
@@ -53,7 +44,7 @@ def register():
     if(current_user.is_authenticated):
         return redirect(url_for('home'))
     form = UserRegistrationForm()
-    if form.validate_on_submit():
+    if form.validate_on_submit() and location:
         hashedPassword=bcrypt.generate_password_hash(form.password.data).decode('utf-8')
         user = User(id= identity(), username=form.username.data, email=form.email.data, password=hashedPassword, address=form.address.data, ngo=form.ngo.data)
         db.session.add(user)
@@ -215,6 +206,7 @@ def DonationsGiven():
     user = current_user
     if(isinstance(user, User) and current_user.ngo==False):
         donations=Donation.query.filter_by(userID=current_user.id).all()
+        print(donations)
         return render_template('DonationsGiven.html',title='Donations Given',donations=donations)
     else:
         return redirect(url_for('home'))
@@ -222,4 +214,44 @@ def DonationsGiven():
 @app.route('/Donate')
 @login_required
 def Donate():
-    return "working"
+    user = current_user
+    if(isinstance(user, User) and current_user.ngo==False):
+        ngos=User.query.filter_by(ngo=True).all()
+        return render_template('Donate.html',title='Donate', ngos=ngos)
+    else:
+        return redirect(url_for('home'))
+    
+@app.route('/Donate/<int:ngo_ID>', methods=['GET', 'POST'])
+@login_required
+def DonateToNGO(ngo_ID):
+    user = current_user
+    if(isinstance(user, User) and current_user.ngo==False):
+        ngo=User.query.filter_by(id=ngo_ID).first()
+        form=DonationForm()
+        if form.validate_on_submit():
+            donation=Donation(userID=current_user.id,ngoID=ngo_ID,amount=form.amount.data, date=datetime.now())
+            db.session.add(donation)
+            db.session.commit()
+            flash('Donation has been made','success')
+            return redirect(url_for('Donate'))
+        return render_template('DonateToNGO.html',title='Donate', ngo=ngo, form=form)
+    else:
+        return redirect(url_for('home'))
+
+
+
+# @app.route('/ChooseLocation')
+# def index():
+#     return render_template('index.html')
+
+@app.route('/map')
+def map():
+    return render_template('map.html')
+
+@app.route('/location', methods=['POST'])
+def location():
+    lat = request.form['lat']
+    lng = request.form['lng']
+    print(f"Latitude: {lat}, Longitude: {lng}")
+    location = True
+    return render_template('location_saved.html', lat=lat, lng=lng)

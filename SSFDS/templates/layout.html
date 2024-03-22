@@ -36,6 +36,7 @@
                 <a class="nav-item nav-link" href="{{ url_for('DonationsReceived') }}">Donations Received</a>
                 {% endif %}
                 {% if current_user.__class__.__name__=='User' and not current_user.ngo %}
+                <a class="nav-item nav-link" href="{{ url_for('Donate') }}">Donate</a>
                 <a class="nav-item nav-link" href="{{ url_for('DonationsGiven') }}">Donations Given</a>
                 {% endif %}
                 <a class="nav-item nav-link" href="{{ url_for('account') }}">Account</a>
