@@ -237,8 +237,7 @@ def DonateToNGO(ngo_ID):
         return render_template('DonateToNGO.html',title='Donate', ngo=ngo, form=form)
     else:
         return redirect(url_for('home'))
-
-
+    
 
 # @app.route('/ChooseLocation')
 # def index():
@@ -252,6 +251,9 @@ def map():
 def location():
     lat = request.form['lat']
     lng = request.form['lng']
-    print(f"Latitude: {lat}, Longitude: {lng}")
-    location = True
+    current_user.latitude = lat
+    current_user.longitude = lng
+    db.session.commit()
+    #print(f"Latitude: {lat}, Longitude: {lng}")
     return render_template('location_saved.html', lat=lat, lng=lng)
+ 

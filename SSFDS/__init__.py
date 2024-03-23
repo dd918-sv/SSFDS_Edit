@@ -7,6 +7,9 @@ from flask_mail import Mail
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '5791628bb0b13ce0c676dfde280ba245'
 app.config['SQLALCHEMY_DATABASE_URI'] ='sqlite:///site.db'
+app.config['RECAPTCHA_PUBLIC_KEY'] = '6LfqZKEpAAAAABXmGAAsW6LwcsmYi59vm-I5H5HW'  # Replace with your reCAPTCHA public key
+app.config['RECAPTCHA_PRIVATE_KEY'] = '6LfqZKEpAAAAADPr646iwLraCTpcHSV_pUJkMYXF'  # Replace with your reCAPTCHA private key
+app.config['RECAPTCHA_USE_SSL'] = False
 db=SQLAlchemy(app)
 bcrypt=Bcrypt(app)
 login_manager=LoginManager(app)

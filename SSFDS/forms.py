@@ -1,4 +1,5 @@
 from flask_wtf import FlaskForm
+from flask_wtf.recaptcha import RecaptchaField
 from flask_wtf.file import FileField, FileAllowed
 from flask_login import current_user
 from wtforms import StringField, PasswordField, SubmitField, BooleanField,IntegerField, FloatField
@@ -59,6 +60,10 @@ class LoginForm(FlaskForm):
     remember = BooleanField('Remember Me')
     submit = SubmitField('Login')
 
+def validate_location(self, email):
+        if current_user.latitude==None or current_user.longitude==None:
+            raise ValidationError('Please enter your location')
+
 class UpdateForm(FlaskForm):
     username = StringField('Username',
                            validators=[DataRequired(), Length(min=2, max=20)])
@@ -66,8 +71,8 @@ class UpdateForm(FlaskForm):
                         validators=[DataRequired(), Email()])
     address = StringField('Address', validators=[DataRequired(), Length(min=10, max=200)])
     picture= FileField('Update Profile Picture', validators=[FileAllowed(['jpg', 'png', 'jpeg'])])
-    password = PasswordField('Enter Password To Update Details', validators=[DataRequired()])
-    submit = SubmitField('Update')
+    recaptcha = RecaptchaField()
+    submit = SubmitField('Update', validators=[validate_location])
     
     def validate_password(self, password):
         if not bcrypt.check_password_hash(current_user.password, password.data):

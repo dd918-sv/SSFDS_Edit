@@ -63,22 +63,26 @@
                         {% endfor %}
                     {% endif %}
                 </div>
+                <div class ="form-group">
+                    <button class="btn btn-outline-info" onclick="openMap()">Choose Location</button>
+                    <script>
+                        function openMap() {
+                        window.open('/map', 'mapPopup', 'width=600,height=400');
+                        }
+                    </script>
+                </div>
                 <div class="form-group">
-                    {{ form.password.label(class="form-control-label") }}
-                    {% if form.password.errors %}
-                        {{ form.password(class="form-control form-control-lg is-invalid") }}
-                        <div class="invalid-feedback">
-                            {% for error in form.password.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        {{ form.password(class="form-control form-control-lg") }}
+                    {{ form.recaptcha.label }} {{ form.recaptcha() }}
+                    {% if form.recaptcha.errors %}
+                        <small class="text-danger">{{ form.recaptcha.errors[0] }}</small>
                     {% endif %}
                 </div>
             </fieldset>
             <div class="form-group">
                 {{ form.submit(class="btn btn-outline-info") }}
+                {% for error in form.submit.errors %}
+                        <small class="text-danger">{{ error }}</small>
+                {% endfor %}
             </div>
         </form>
   </div>
