@@ -82,11 +82,11 @@ def logout():
     logout_user()
     return redirect(url_for('home'))
 
-def save_picture(formPicture):
+def save_picture(formPicture, path):
     randomHex=secrets.token_hex(8)
     _, fExt = os.path.splitext(formPicture.filename)
     pictureName = randomHex + fExt
-    picturePath = os.path.join(app.root_path,'static/profile_pics', pictureName)
+    picturePath = os.path.join(app.root_path, path, pictureName)
     outputSize=(125,125)
     resizedImage = Image.open(formPicture)
     resizedImage.thumbnail(outputSize)
@@ -99,9 +99,8 @@ def account():
     form = UpdateForm()
     if form.validate_on_submit():
         if form.picture.data:
-            pictureFile = save_picture(form.picture.data)
+            pictureFile = save_picture(form.picture.data, 'static/profile_pics')
             current_user.image = pictureFile
-            print(current_user.image)
         current_user.username = form.username.data
         current_user.email = form.email.data
         current_user.address = form.address.data
@@ -130,6 +129,9 @@ def addDish():
     form=AddDishForm()
     if form.validate_on_submit():
         dish=Dish(name=form.name.data,price=form.price.data,description=form.description.data,restaurant=current_user)
+        if form.picture.data:
+            pictureFile = save_picture(form.picture.data, 'static/dish_pics')
+            dish.image = pictureFile
         db.session.add(dish)
         db.session.commit()
         flash('Dish added successfully','success')
@@ -143,7 +145,6 @@ def delete_dish(restaurant_id, dish_id):
         db.session.delete(dish)
         db.session.commit()
         flash('The dish has been deleted!', 'success')
-        print('hi')
         return jsonify({'redirect_url': url_for('account')}), 200
     
 def sendMail(user):
@@ -238,10 +239,6 @@ def DonateToNGO(ngo_ID):
         return render_template('DonateToNGO.html',title='Donate', ngo=ngo, form=form)
     else:
         return redirect(url_for('home'))
-    
-# @app.route('/ChooseLocation')
-# def index():
-#     return render_template('index.html')
 
 @app.route('/map')
 def map():
@@ -254,13 +251,16 @@ def location():
     current_user.latitude = lat
     current_user.longitude = lng
     db.session.commit()
-    #print(f"Latitude: {lat}, Longitude: {lng}")
     return render_template('location_saved.html', lat=lat, lng=lng)
-
 
 @app.route("/menu/<int:restaurant_id>")
 @login_required
 def menu(restaurant_id):
+    if(isinstance(current_user,Restaurant)):
+        return redirect(url_for('home'))
+    elif current_user.latitude is None or current_user.longitude is None:
+        flash('Please enter your location first in Account settings','warning')
+        return redirect(url_for('home'))
     restaurant=Restaurant.query.get(restaurant_id)
     dishes=Dish.query.filter_by(restaurantID=restaurant_id).all()
     return render_template('menu.html',restaurant=restaurant,dishes=dishes)
@@ -300,6 +300,7 @@ def addToCart(restaurant_id,user_id,dish_id):
     db.session.commit()
     return jsonify({'success': True, 'message': 'Successfully Added','quantity':1})
     
+
 @app.route("/goToCart", methods=['GET', 'POST'])
 @login_required
 def goToCart():

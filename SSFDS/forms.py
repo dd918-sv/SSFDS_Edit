@@ -98,6 +98,7 @@ class AddDishForm(FlaskForm):
     name=StringField('Dish Name',validators=[DataRequired()])
     price=FloatField('Price',validators=[DataRequired()])
     description = StringField('Description',validators=[Length(min=0,max=30)])
+    picture= FileField('Add Dish Image', validators=[FileAllowed(['jpg', 'png', 'jpeg'])])
     submit=SubmitField('Add Dish')
 
 class ForgotPasswordForm(FlaskForm):

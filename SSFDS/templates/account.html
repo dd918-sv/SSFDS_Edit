@@ -90,22 +90,17 @@
   {%if current_user.__class__.__name__=='Restaurant'%}
         <h1>List of Food Items</h1>
         {%for dish in current_user.dishes%}
-            <div class="card mt-3">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        {{dish.name}}
-                    </h5>
-
-                    <p class="card-text">
-                        {{dish.description}}
-                    </p> 
-                    <p class="card-text">
-                        {{dish.price}}
-                    </p>
-                <button onclick="deleteDish('{{dish.id}}','{{dish.restaurantID}}')">Delete</button>
-
-                </div>
-            </div>                  
+        <div class="content-section">
+            <div class="media">
+              <img class="rounded-circle account-img" src="{{ url_for('static', filename='dish_pics/' + dish.image) }}">
+              <div class="media-body">
+                <p class="article-title"><h2 class="account-heading">{{dish.name}}</h2></p>
+                <p class="text-secondary">{{dish.description}}</p>
+                <p class="text-secondary">₹{{dish.price}}</p>
+              </div>
+                 <button class="btn btn-danger" onclick="deleteDish('{{dish.id}}','{{dish.restaurantID}}')">Delete</button>
+            </div>
+        </div>
         {%endfor%}
         <button><a href="{{url_for('addDish')}}" style="text-decoration: none;color: black;" >Add a dish</a></button>
     {%endif%}
