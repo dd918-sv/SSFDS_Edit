@@ -1,0 +1,47 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="container">
+    <h1 class="my-4">My Orders</h1>
+    <div class="card mb-3">
+        <div class="card-body">
+            {% for order in orders %}
+            <div class="row">
+                <div class="col-md-4">
+                    <h5 class="card-title">{{ order.dish.name }}</h5>
+                    <p class="card-text text-muted">Description: {{ order.dish.description }}</p>
+                </div>
+                <div class="col-md-4">
+                    <form id="remove-form-{{ order.id }}" method="POST" action="{{ url_for('remove_order', order_id=order.id) }}">
+                        <div class="form-group">
+                            <label for="quantity-{{ order.id }}">Quantity:</label>
+                            <input type="number" id="quantity-{{ order.id }}" name="quantity" class="form-control" value="{{ order.quantity }}" min="1" onchange="updatePrice('{{ order.id }}','{{order.dish.price}}')">
+                        </div>
+                        <button type="button" class="btn btn-danger" onclick="removeOrder('{{ order.id }}')">Remove</button>
+                    </form>
+                </div>
+                <div class="col-md-4">
+                    <p id="price-{{ order.id }}" class="card-text"><strong>Price:</strong> Rs{{ order.dish.price * order.quantity }}</p>
+                </div>
+            </div>
+            <br><br>
+            {% endfor %}
+            <button type="button" class="btn btn-info" onclick="totalOrder()">Order</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function removeOrder(orderId) {
+        if (confirm("Are you sure you want to remove this order?")) {
+            document.getElementById("remove-form-" + orderId).submit();
+        }
+    }
+
+    function updatePrice(orderId,price) {
+        var quantity = parseInt(document.getElementById("quantity-" + orderId).value);
+        var pricePerUnit = price  // Assuming all dishes have the same price
+        var totalPrice = quantity * pricePerUnit;
+        document.getElementById("price-" + orderId).innerHTML = "<strong>Price:</strong> Rs" + totalPrice.toFixed(2);
+    }
+</script>
+{% endblock content %}

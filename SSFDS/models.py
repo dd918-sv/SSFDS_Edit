@@ -99,17 +99,22 @@ class Dish(db.Model):
     def __repr__(self):
         return f"Dish('{self.name}', '{self.price}', '{self.description}', '{self.image}')"
 
+
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     userID = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     restaurantID = db.Column(db.Integer, db.ForeignKey('restaurant.id'), nullable=True)
     amount = db.Column(db.Float, nullable=False, default=0)
+    discount=db.Column(db.Integer, nullable=False, default=0)
     orders = db.relationship('Order', backref='transaction', lazy=True)
     orderplaced = db.Column(db.Boolean)
     date = db.Column(db.DateTime, nullable=True)
     paymentMethod = db.Column(db.String(20), nullable=False)
     paid = db.Column(db.Boolean)
-    
+
+    def __repr__(self):
+        return f"Transaction('{self.userID}', '{self.restaurantID}', '{self.date}')"
+ 
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     dishID = db.Column(db.Integer, db.ForeignKey('dish.id'), nullable=False)

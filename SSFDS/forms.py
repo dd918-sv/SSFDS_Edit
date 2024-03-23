@@ -77,7 +77,7 @@ class UpdateForm(FlaskForm):
     def validate_password(self, password):
         if not bcrypt.check_password_hash(current_user.password, password.data):
             raise ValidationError('Invalid password')
-
+    
     def validate_username(self, username):
         user = current_user
         if username.data!= current_user.username and isinstance(user, User):
@@ -119,3 +119,9 @@ class ResetPasswordForm(FlaskForm):
 class DonationForm(FlaskForm):
     amount=FloatField('Amount',validators=[DataRequired()])
     submit=SubmitField('Donate')
+
+    def validate_amount(self, amount):
+        if amount.data<100:
+            raise ValidationError('Minimum amount is 100')
+        elif amount.data>100000000:
+            raise ValidationError('Maximum amount is 100000000')

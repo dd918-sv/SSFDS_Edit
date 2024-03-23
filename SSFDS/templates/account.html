@@ -111,8 +111,7 @@
     {%endif%}
     <script>
         function deleteDish(dishId, restaurantId) {
-    console.log('hi');
-    console.log('Deleting dish:', dishId, 'from restaurant:', restaurantId);
+        console.log('Deleting dish:', dishId, 'from restaurant:', restaurantId);
     
     fetch(`/delete-dish/${restaurantId}/${dishId}`, {
         method: 'DELETE',

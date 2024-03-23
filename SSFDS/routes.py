@@ -11,15 +11,13 @@ from itsdangerous import URLSafeTimedSerializer as Serializer
 from flask_mail import Message
 
 
-location = False
-
 def identity():
     return len(User.query.all())+len(Restaurant.query.all())+1
 
 @app.route("/")
 @app.route("/home")
 def home():
-    return render_template('home.html', restaurants=Restaurant.query.all())
+    return render_template('home.html', restaurants=Restaurant.query.all(),title='Home')
 
 @app.route("/about")
 def about():
@@ -44,7 +42,7 @@ def register():
     if(current_user.is_authenticated):
         return redirect(url_for('home'))
     form = UserRegistrationForm()
-    if form.validate_on_submit() and location:
+    if form.validate_on_submit():
         hashedPassword=bcrypt.generate_password_hash(form.password.data).decode('utf-8')
         user = User(id= identity(), username=form.username.data, email=form.email.data, password=hashedPassword, address=form.address.data, ngo=form.ngo.data)
         db.session.add(user)
@@ -74,7 +72,7 @@ def login():
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')
     return render_template('login.html', title='Login', form=form)
- 
+
 @app.route("/logout")
 def logout():
     logout_user()
@@ -189,7 +187,7 @@ def reset_token(token):
         return redirect(url_for('login'))
     return render_template('resetPassword.html',title='Reset Password',form=form)
         
-    
+
 @app.route('/DonationsReceived')
 @login_required
 def DonationsReceived():
@@ -206,7 +204,6 @@ def DonationsGiven():
     user = current_user
     if(isinstance(user, User) and current_user.ngo==False):
         donations=Donation.query.filter_by(userID=current_user.id).all()
-        print(donations)
         return render_template('DonationsGiven.html',title='Donations Given',donations=donations)
     else:
         return redirect(url_for('home'))
@@ -220,7 +217,7 @@ def Donate():
         return render_template('Donate.html',title='Donate', ngos=ngos)
     else:
         return redirect(url_for('home'))
-    
+
 @app.route('/Donate/<int:ngo_ID>', methods=['GET', 'POST'])
 @login_required
 def DonateToNGO(ngo_ID):
@@ -238,7 +235,6 @@ def DonateToNGO(ngo_ID):
     else:
         return redirect(url_for('home'))
     
-
 # @app.route('/ChooseLocation')
 # def index():
 #     return render_template('index.html')
@@ -256,4 +252,60 @@ def location():
     db.session.commit()
     #print(f"Latitude: {lat}, Longitude: {lng}")
     return render_template('location_saved.html', lat=lat, lng=lng)
- 
+
+
+@app.route("/menu/<int:restaurant_id>")
+@login_required
+def menu(restaurant_id):
+    restaurant=Restaurant.query.get(restaurant_id)
+    dishes=Dish.query.filter_by(restaurantID=restaurant_id).all()
+    return render_template('menu.html',restaurant=restaurant,dishes=dishes)
+
+
+@app.route("/addToCart/<int:restaurant_id>/<int:user_id>/<int:dish_id>",methods=['POST','GET'])
+@login_required
+def addToCart(restaurant_id,user_id,dish_id):
+    try:
+        checkOrder=Order.query.filter_by(dishID=dish_id).all()
+        if checkOrder:
+            for order in checkOrder:
+                if order.transaction.userID==user_id:
+                    print('added')
+                    print(order.quantity)
+                    return jsonify({'success': True,'message':'Already Added!'})
+    
+        order=Order(dishID=dish_id,quantity=1)
+        transaction = Transaction(userID=user_id, restaurantID=restaurant_id, paymentMethod='cash', paid=False, orderplaced=False,discount=0)
+        if(isinstance(current_user,User) and current_user.ngo==True):
+            transaction.discount =40
+        else:
+            transaction.discount=10
+        db.session.add(transaction)
+        transaction.orders.append(order)
+        db.session.commit()
+        print('added')
+        return jsonify({'success': True, 'message': 'Successfully Added','quantity':1})
+    except Exception as e:
+        return jsonify({'success': False, 'message': 'Error adding dish:'})
+    
+@app.route("/goToCart", methods=['GET', 'POST'])
+@login_required
+def goToCart():
+    user_id = current_user.id
+    orders = Order.query.join(Transaction).filter(Transaction.userID == user_id, Transaction.paid == False).all()
+    
+    # Fetch the price per unit for each order and store it in a list
+    # prices_per_unit = [order.dish.price for order in orders]
+    
+    return render_template('cart.html', orders=orders)
+
+
+@app.route("/remove_order/<int:order_id>", methods=['POST'])
+@login_required
+def remove_order(order_id):
+    order = Order.query.get_or_404(order_id)
+    if order:
+        db.session.delete(order)
+        db.session.commit()
+        flash('The order has been removed!', 'success')
+    return redirect(url_for('goToCart'))
