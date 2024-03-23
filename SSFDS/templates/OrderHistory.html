@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div class="content-section">
+        <h1>Order History</h1>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Restaurant</th>
+                    <th>Dish</th>
+                    <th>Quantity</th>
+                    <th>Order Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ts in Transaction %}
+                    {% if (ts.user_id == current_user.id) and ts.paid == true %}
+                        {% set order = Order.query.filter(Order.id == ts.order_id).first() %}
+                        {% set dish = Dish.query.filter(Dish.id == order.dish_id).first() %}
+                        {% set restaurant = Restaurant.query.filter(Restaurant.id == dish.restaurantid).first() %}
+                        {% set total = order.quantity * ts.discount%}
+                        <tr>
+                            <td>{{ order.id }}</td>
+                            <td>{{ restaurant.name }}</td>
+                            <td>{{ dish.name }}</td>
+                            <td>{{ order.quantity }}</td>
+                            <td>{{ total }}</td>
+                        </tr>  
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock content %}

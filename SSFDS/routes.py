@@ -65,10 +65,14 @@ def login():
             next_page = request.args.get('next')
             return redirect(next_page) if next_page else redirect(url_for('home'))
         elif restaurant and bcrypt.check_password_hash(restaurant.password, form.password.data):
-            login_user(restaurant, remember=form.remember.data)
-            flash('Login Successful','success')
-            next_page = request.args.get('next')
-            return redirect(next_page) if next_page else redirect(url_for('home'))
+            current_time = datetime.now()
+            if 20 <= current_time.hour < 20.5:  
+                login_user(restaurant, remember=form.remember.data)
+                flash('Login Successful','success')
+                next_page = request.args.get('next')
+                return redirect(next_page) if next_page else redirect(url_for('home'))
+            else:
+                flash('Restaurant login is only available between 8 PM and 8:30 PM.', 'warning')
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')
     return render_template('login.html', title='Login', form=form)
@@ -309,3 +313,13 @@ def remove_order(order_id):
         db.session.commit()
         flash('The order has been removed!', 'success')
     return redirect(url_for('goToCart'))
+
+@app.route('/OrderHistory')
+@login_required
+def OrderHistory():
+    user = current_user
+    if(isinstance(user, User)):
+        orders=Order.query.all()        
+        return render_template('OrderHistory.html',title='Order History',orders=orders)
+    else:
+        return redirect(url_for('home'))
