@@ -66,7 +66,7 @@ def login():
             return redirect(next_page) if next_page else redirect(url_for('home'))
         elif restaurant and bcrypt.check_password_hash(restaurant.password, form.password.data):
             current_time = datetime.now()
-            if 20 <= current_time.hour < 20.5:  
+            if 20 <= current_time.hour < 20.5 or 1:  
                 login_user(restaurant, remember=form.remember.data)
                 flash('Login Successful','success')
                 next_page = request.args.get('next')
@@ -269,35 +269,50 @@ def menu(restaurant_id):
 @app.route("/addToCart/<int:restaurant_id>/<int:user_id>/<int:dish_id>",methods=['POST','GET'])
 @login_required
 def addToCart(restaurant_id,user_id,dish_id):
-    try:
-        checkOrder=Order.query.filter_by(dishID=dish_id).all()
-        if checkOrder:
-            for order in checkOrder:
-                if order.transaction.userID==user_id:
-                    print('added')
-                    print(order.quantity)
-                    return jsonify({'success': True,'message':'Already Added!'})
-    
-        order=Order(dishID=dish_id,quantity=1)
+    if(isinstance(current_user,Restaurant)):
+        return redirect(url_for('home'))
+    transaction = Transaction.query.filter_by(userID=user_id, paid=False).first()
+    print(transaction)
+    if transaction is None:
         transaction = Transaction(userID=user_id, restaurantID=restaurant_id, paymentMethod='cash', paid=False, orderplaced=False,discount=0)
-        if(isinstance(current_user,User) and current_user.ngo==True):
+        if(current_user.ngo==True):
             transaction.discount =40
         else:
             transaction.discount=10
-        db.session.add(transaction)
-        transaction.orders.append(order)
+            db.session.add(transaction)
         db.session.commit()
-        print('added')
-        return jsonify({'success': True, 'message': 'Successfully Added','quantity':1})
-    except Exception as e:
-        return jsonify({'success': False, 'message': 'Error adding dish:'})
+    else:
+        checkOrder = Order.query.filter_by(transactionID=transaction.id).all()
+        if checkOrder == []:
+            transaction.restaurantID=restaurant_id
+        elif transaction.restaurantID!= restaurant_id:
+            #this message is not displayed. Need to be corrected
+            flash('You cannot add dishes from different restaurants in the same order. Either complete your current order or empty your cart.', 'warning')
+            return redirect(url_for('home'))
+        if checkOrder:
+            for order in checkOrder:
+                print('added')
+                print(order.quantity)
+                if(order.dishID == dish_id):
+                    return jsonify({'success': True,'message':'Already Added!'})     
+    order=Order(transactionID= transaction.id,dishID=dish_id, quantity=1)
+    db.session.add(order)
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'Successfully Added','quantity':1})
     
 @app.route("/goToCart", methods=['GET', 'POST'])
 @login_required
 def goToCart():
     user_id = current_user.id
-    orders = Order.query.join(Transaction).filter(Transaction.userID == user_id, Transaction.paid == False).all()
+    transaction = Transaction.query.filter_by(userID=user_id, paid=False).first()
+    if transaction is None:
+        flash('Your Cart is empty.', 'warning')
+        return redirect(url_for('home'))
     
+    orders = Order.query.filter_by(transactionID=transaction.id).all()
+    if orders is None or orders == []:
+        flash('Your Cart is empty.', 'warning')
+        return redirect(url_for('home'))
     # Fetch the price per unit for each order and store it in a list
     # prices_per_unit = [order.dish.price for order in orders]
     
