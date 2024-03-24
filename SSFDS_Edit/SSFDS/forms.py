@@ -1,14 +1,15 @@
 from flask_wtf import FlaskForm
+from flask_wtf.recaptcha import RecaptchaField
 from flask_wtf.file import FileField, FileAllowed
 from flask_login import current_user
-from wtforms import StringField, PasswordField, SubmitField, BooleanField,FloatField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField,IntegerField, FloatField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from SSFDS.models import User, Restaurant
 from SSFDS import bcrypt
 
 
 class RestaurantRegistrationForm(FlaskForm):
-    username = StringField('Username',
+    username = StringField('Name',
                            validators=[DataRequired(), Length(min=2, max=20)])
     email = StringField('Email',
                         validators=[DataRequired(), Email()])
@@ -17,10 +18,6 @@ class RestaurantRegistrationForm(FlaskForm):
     confirm_password = PasswordField('Confirm Password',
                                      validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Sign Up')
-    def validate_username(self, username):
-        user = User.query.filter_by(username=username.data).first()
-        if user:
-            raise ValidationError('That username is taken. Please choose a different one.')
         
     def validate_email(self, email):
         restaurant = Restaurant.query.filter_by(email=email.data).first()
@@ -63,6 +60,10 @@ class LoginForm(FlaskForm):
     remember = BooleanField('Remember Me')
     submit = SubmitField('Login')
 
+def validate_location(self, email):
+        if current_user.latitude==None or current_user.longitude==None:
+            raise ValidationError('Please enter your location')
+
 class UpdateForm(FlaskForm):
     username = StringField('Username',
                            validators=[DataRequired(), Length(min=2, max=20)])
@@ -70,15 +71,16 @@ class UpdateForm(FlaskForm):
                         validators=[DataRequired(), Email()])
     address = StringField('Address', validators=[DataRequired(), Length(min=10, max=200)])
     picture= FileField('Update Profile Picture', validators=[FileAllowed(['jpg', 'png', 'jpeg'])])
-    password = PasswordField('Enter Password To Update Details', validators=[DataRequired()])
-    submit = SubmitField('Update')
-
+    recaptcha = RecaptchaField()
+    submit = SubmitField('Update', validators=[validate_location])
+    
     def validate_password(self, password):
         if not bcrypt.check_password_hash(current_user.password, password.data):
             raise ValidationError('Invalid password')
     
     def validate_username(self, username):
-        if username.data!= current_user.username and isinstance(current_user,User):
+        user = current_user
+        if username.data!= current_user.username and isinstance(user, User):
             user = User.query.filter_by(username=username.data).first()
             if user:
                 raise ValidationError('That username is taken. Please choose a different one.')
@@ -96,6 +98,7 @@ class AddDishForm(FlaskForm):
     name=StringField('Dish Name',validators=[DataRequired()])
     price=FloatField('Price',validators=[DataRequired()])
     description = StringField('Description',validators=[Length(min=0,max=30)])
+    picture= FileField('Add Dish Image', validators=[FileAllowed(['jpg', 'png', 'jpeg'])])
     submit=SubmitField('Add Dish')
 
 class ForgotPasswordForm(FlaskForm):
@@ -115,7 +118,7 @@ class ResetPasswordForm(FlaskForm):
     submit=SubmitField('Reset Password')
 
 class DonationForm(FlaskForm):
-    amount=FloatField('Amount',validators=[DataRequired(),])
+    amount=FloatField('Amount',validators=[DataRequired()])
     submit=SubmitField('Donate')
 
     def validate_amount(self, amount):

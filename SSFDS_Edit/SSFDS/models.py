@@ -2,7 +2,7 @@ from SSFDS import db, login_manager,app
 from flask_login import UserMixin
 from itsdangerous import URLSafeTimedSerializer as Serializer
 from datetime import datetime, timedelta
-
+ 
 @login_manager.user_loader
 def loadUser(userId):
     user=User.query.get(int(userId))
@@ -24,14 +24,14 @@ class Restaurant(db.Model, UserMixin):
     password = db.Column(db.String(60), nullable=False)
     open=db.Column(db.Boolean)
     address = db.Column(db.String(120), nullable=False)
-    latitude = db.Column(db.Double, nullable=True, default=1000)
-    longitude = db.Column(db.Double, nullable=True, default=1000)
+    latitude = db.Column(db.Double, nullable=True)
+    longitude = db.Column(db.Double, nullable=True)
     content = db.Column(db.Text, nullable=True)
     dishes = db.relationship('Dish', backref='restaurant', lazy=True)
     transaction = db.relationship('Transaction', backref='restaurant', lazy=True)
 
     def __repr__(self):
-        return f"Restaurant('{self.username}', '{self.email}', '{self.image}')"
+        return f"Restaurant('{self.username}', '{self.email}', '{self.image}', '{self.latitude}', '{self.longitude}')"
     
     def get_token(self, expires_sec=300):
         serial = Serializer(app.config['SECRET_KEY'])
@@ -67,7 +67,7 @@ class User(db.Model, UserMixin):
     ReceiverNGO = db.relationship('Donation', foreign_keys='[Donation.ngoID]', backref='ngo_user', lazy=True)
 
     def __repr__(self):
-        return f"User('{self.username}', '{self.email}', '{self.image}, '{self.ngo}')"
+        return f"User('{self.username}', '{self.email}', '{self.image}, '{self.ngo}', '{self.latitude}', '{self.longitude}')"
     
     def get_token(self,expires_sec=300):
         serial=Serializer(app.config['SECRET_KEY'])

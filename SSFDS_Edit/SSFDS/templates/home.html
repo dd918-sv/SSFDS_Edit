@@ -1,19 +1,44 @@
 {% extends "layout.html" %}
 {% block content %}
-  {% for restaurant in restaurants %}
-    <article class="media content-section"></article>
-          <div class="media-body">
-            <!-- <div class="article-metadata">
-              <a class="mr-2" href="#">{{ restaurant.dishes }}</a>
-            </div> -->
-            <h2><a class="article-title" href="#" onclick="enterMenu('{{restaurant.id}}')">{{ restaurant.username }}</a></h2>
-            <p class="article-content">{{ restaurant.address }}</p>
-          </div>
-    </article>
+<div class="container">
+    <h1 class="my-4">Nearby Restaurants</h1>
+    {% for restaurant in restaurants %}
+        {% set distance = None %}
+        {% if current_user.is_authenticated %}
+            {% set distance = calculate_distance(restaurant.latitude, restaurant.longitude, current_user.latitude, current_user.longitude) %}
+        {% endif %}
+        {% if distance is none or distance < 10 %}
+            <article class="media content-section">
+                <div class="media-body">
+                    <h2><a class="article-title" href="#" onclick="enterMenu('{{ restaurant.id }}')">{{ restaurant.username }}</a></h2>
+                    <p class="article-content">{{ restaurant.address }}</p>
+                    <!-- {% if distance is not none %}
+                        <p>Distance: {{ distance }} km</p>
+                    {% endif %} -->
+                </div>
+            </article>
+        {% endif %}
     {% endfor %}
-    <script>
-      function enterMenu(restaurant_id){
+</div>
+
+<script>
+    function enterMenu(restaurant_id) {
         window.location.href = "/menu/" + restaurant_id;
-      }
-    </script>
-{% endblock content %}
+    }
+
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Radius of the Earth in kilometers
+        const dLat = (lat2 - lat1) * Math.PI / 180;  // Convert latitude difference to radians
+        const dLon = (lon2 - lon1) * Math.PI / 180;  // Convert longitude difference to radians
+        
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const distance = R * c; // Distance in kilometers
+        
+        return distance;
+    }
+</script>
+{% endblock %}
