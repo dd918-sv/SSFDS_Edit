@@ -9,6 +9,7 @@ from SSFDS.models import Restaurant, User, Dish, Transaction, Order, Donation
 from flask_login import login_user, current_user, logout_user, login_required
 from itsdangerous import URLSafeTimedSerializer as Serializer
 from flask_mail import Message
+from math import radians, sin, cos, sqrt, atan2
 
 
 def identity():
@@ -17,7 +18,11 @@ def identity():
 @app.route("/")
 @app.route("/home")
 def home():
-    return render_template('home.html', restaurants=Restaurant.query.all(),title='Home')
+    user=current_user
+    if(user.is_authenticated and (user.latitude is None or user.longitude is None)):
+        flash('Please enter your location first in Account settings for getting list of restaurants','warning')
+        return redirect(url_for('account'))
+    return render_template('home.html', restaurants=Restaurant.query.all(),title='Home',calculate_distance=calculate_distance)
 
 @app.route("/about")
 def about():
@@ -126,6 +131,9 @@ def account():
 @app.route("/addDish", methods=['GET', 'POST'])
 @login_required
 def addDish():
+    if current_user.latitude is None or current_user.longitude is None:
+        flash('Please enter your location first in Account settings','warning')
+        return redirect(url_for('account'))
     form=AddDishForm()
     if form.validate_on_submit():
         dish=Dish(name=form.name.data,price=form.price.data,description=form.description.data,restaurant=current_user)
@@ -266,45 +274,45 @@ def menu(restaurant_id):
     return render_template('menu.html',restaurant=restaurant,dishes=dishes)
 
 
-@app.route("/addToCart/<int:restaurant_id>/<int:user_id>/<int:dish_id>",methods=['POST','GET'])
+@app.route("/addToCart/<int:restaurant_id>/<int:user_id>/<int:dish_id>", methods=['POST', 'GET'])
 @login_required
-def addToCart(restaurant_id,user_id,dish_id):
-    if(isinstance(current_user,Restaurant)):
+def addToCart(restaurant_id, user_id, dish_id):
+    if isinstance(current_user, Restaurant):
+        flash('A restaurant is not allowed to order!', 'warning')
         return redirect(url_for('home'))
+
     transaction = Transaction.query.filter_by(userID=user_id, paid=False).first()
-    print(transaction)
+    
     if transaction is None:
-        transaction = Transaction(userID=user_id, restaurantID=restaurant_id, paymentMethod='cash', paid=False, orderplaced=False,discount=0)
-        if(current_user.ngo==True):
-            transaction.discount =40
+        transaction = Transaction(userID=user_id, restaurantID=restaurant_id, paymentMethod='cash', paid=False, orderplaced=False, discount=0)
+        if current_user.ngo:
+            transaction.discount = 40
         else:
-            transaction.discount=10
-            db.session.add(transaction)
+            transaction.discount = 20
+        db.session.add(transaction)
         db.session.commit()
     else:
         checkOrder = Order.query.filter_by(transactionID=transaction.id).all()
-        if checkOrder == []:
-            transaction.restaurantID=restaurant_id
-        elif transaction.restaurantID!= restaurant_id:
-            #this message is not displayed. Need to be corrected
-            flash('You cannot add dishes from different restaurants in the same order. Either complete your current order or empty your cart.', 'warning')
-            return redirect(url_for('home'))
         if checkOrder:
             for order in checkOrder:
-                print('added')
-                print(order.quantity)
-                if(order.dishID == dish_id):
-                    return jsonify({'success': True,'message':'Already Added!'})     
-    order=Order(transactionID= transaction.id,dishID=dish_id, quantity=1)
-    db.session.add(order)
-    db.session.commit()
-    return jsonify({'success': True, 'message': 'Successfully Added','quantity':1})
+                if order.dish.restaurantID != restaurant_id:
+                    return jsonify({'success':False,'message':'You cannot add dishes from different restaurants in the same order. Either complete your current order or empty your cart.'})
+        checkOrder = Order.query.filter_by(transactionID=transaction.id, dishID=dish_id).first()
+        if checkOrder:
+            return jsonify({'success': False, 'message': 'Already Added'})
+        else:
+            order = Order(transactionID=transaction.id, dishID=dish_id, quantity=1)
+            db.session.add(order)
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Successfully Added', 'quantity': 1})
+
     
 
 @app.route("/goToCart", methods=['GET', 'POST'])
 @login_required
 def goToCart():
     user_id = current_user.id
+    user=current_user
     transaction = Transaction.query.filter_by(userID=user_id, paid=False).first()
     if transaction is None:
         flash('Your Cart is empty.', 'warning')
@@ -316,8 +324,29 @@ def goToCart():
         return redirect(url_for('home'))
     # Fetch the price per unit for each order and store it in a list
     # prices_per_unit = [order.dish.price for order in orders]
-    
-    return render_template('cart.html', orders=orders)
+    order=orders[0]
+    restaurant=order.transaction.restaurant
+    distance=calculate_distance(restaurant.latitude,restaurant.longitude,user.latitude,user.longitude)
+    delivery_charge=0
+    if distance>2:
+        delivery_charge=5*(distance-2)
+    print(distance)
+    return render_template('cart.html', orders=orders,delivery_charge=delivery_charge, title='Cart')
+
+@app.route('/update_quantity', methods=['POST'])
+@login_required
+def update_quantity():
+    data = request.get_json()
+    order_id = data.get('order_id')
+    quantity = data.get('quantity')
+    order = Order.query.get(order_id)
+    if not order:
+        return jsonify({"success": False, "message": "Order not found"}), 404
+
+    order.quantity = quantity
+    db.session.commit()
+
+    return jsonify({"success": True}), 200
 
 
 @app.route("/remove_order/<int:order_id>", methods=['POST'])
@@ -335,7 +364,129 @@ def remove_order(order_id):
 def OrderHistory():
     user = current_user
     if(isinstance(user, User)):
-        orders=Order.query.all()        
-        return render_template('OrderHistory.html',title='Order History',orders=orders)
+        orders = Order.query.join(Transaction).join(Restaurant).filter(Transaction.userID == user.id).all()  
+        transactions=Transaction.query.filter_by(userID=user.id, paid=True).all()
+        setoforders=[]
+        for transaction in transactions:
+            orders=Order.query.filter_by(transactionID=transaction.id).all()
+            setoforders.append(orders)
+            print(orders)
+        # print(orders)   
+        size=len(transactions)
+        return render_template('OrderHistory.html',title='Order History', setoforders=setoforders,transactions=transactions, size=size)
     else:
         return redirect(url_for('home'))
+
+@app.route("/place_order", methods=['POST'])
+@login_required
+def place_order():
+    data = request.json
+    orders = data.get('orders', [])
+    payment_method = data.get('payment_method')
+    if not orders:
+        return jsonify({'success': False, 'message': 'No orders found.'}), 400
+
+    user_id = current_user.id
+    transaction = Transaction.query.filter_by(userID=user_id, paid=False).first()
+    if not transaction:
+        return jsonify({'success': False, 'message': 'No active transaction found.'}), 404
+
+    total_price = 0
+    for order_data in orders:
+        dish_id = order_data.get('dish_id')
+        quantity = order_data.get('quantity')
+        if dish_id is None or quantity is None:
+            continue
+
+        dish = Dish.query.get(dish_id)
+        if not dish:
+            continue
+
+        order = Order.query.filter_by(transactionID=transaction.id, dishID=dish_id).first()
+        if order:
+            order.quantity = quantity
+            order.transaction.date = datetime.now()
+        else:
+            order = Order(transactionID=transaction.id, dishID=dish_id)
+            db.session.add(order)
+
+        total_price += dish.price * quantity
+
+    # Update the payment method
+    transaction.paymentMethod = payment_method
+
+    # Mark the transaction as paid
+    transaction.paid = True
+    db.session.commit()
+
+    return jsonify({'success': True, 'total_price': total_price})
+
+    #acos(sin(lat1)*sin(lat2)+cos(lat1)*cos(lat2)*cos(lon2-lon1))*6371 
+
+
+
+def calculate_distance(lat1, lon1, lat2, lon2):
+    # Radius of the Earth in kilometers
+    R = 6371.0
+    
+    # Convert latitude and longitude from degrees to radians
+    lat1 = radians(lat1)
+    lon1 = radians(lon1)
+    lat2 = radians(lat2)
+    lon2 = radians(lon2)
+    
+    # Calculate the change in coordinates
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+    
+    # Calculate the distance using Haversine formula
+    a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    distance = R * c
+    
+    return distance
+
+
+
+# @app.route("/place_order", methods=['POST'])
+# @login_required
+# def place_order():
+#     data = request.json
+#     orders = data.get('orders', [])
+#     paymentMethod=data.get('payment_method')
+#     if not orders:
+#         return jsonify({'success': False, 'message': 'No orders found.'}), 400
+
+#     user_id = current_user.id
+#     transaction = Transaction.query.filter_by(userID=user_id, paid=False).first()
+#     if not transaction:
+#         return jsonify({'success': False, 'message': 'No active transaction found.'}), 404
+
+#     total_price = 0
+#     for order_data in orders:
+#         dish_id = order_data.get('dish_id')
+#         quantity = order_data.get('quantity')
+#         if dish_id is None or quantity is None:
+#             continue
+
+#         dish = Dish.query.get(dish_id)
+#         if not dish:
+#             continue
+
+#         order = Order.query.filter_by(transactionID=transaction.id, dishID=dish_id).first()
+#         if order:
+#             order.quantity = quantity
+#             order.transaction.date=datetime.now()
+#         else:
+#             order = Order(transactionID=transaction.id, dishID=dish_id)
+#             db.session.add(order)
+
+#         total_price += dish.price * quantity
+
+#     # Mark the transaction as paid
+#     transaction.paid = True
+#     db.session.commit()
+
+#     return jsonify({'success': True, 'total_price': total_price})
+
+
