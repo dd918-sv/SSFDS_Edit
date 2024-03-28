@@ -16,7 +16,6 @@
     {%endfor%}
     <script>
         function addToCart(restaurant_id, user_id, dish_id,button) {
-            console.log(232)
         fetch(`/addToCart/${restaurant_id}/${user_id}/${dish_id}`, {
             method: 'POST',
             headers: {

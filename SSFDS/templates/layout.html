@@ -44,8 +44,15 @@
                 <a class="nav-item nav-link" href="{{ url_for('DonationsReceived') }}">Donations Received</a>
                 {% endif %}
                 <a class="nav-item nav-link" href="{{ url_for('OrderHistory')}}">Order History</a>
-                <a class="nav-item nav-link" href="{{ url_for('account') }}">Account</a>
-                <a class="nav-item nav-link" href="{{ url_for('logout') }}">Logout</a>
+                <div class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="#" id="profileDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      <img src="{{ url_for('static',filename='profile_pics/'+current_user.image)}}" alt="Profile Photo" style="height: 30px; width: 30px; border-radius: 50%;">
+                  </a>
+                  <div class="dropdown-menu" aria-labelledby="profileDropdown">
+                      <a class="dropdown-item" href="{{ url_for('account') }}">Account</a>
+                      <a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a>
+                  </div>
+              </div>
                 {% else %}
                 <a class="nav-item nav-link" href="{{ url_for('login') }}">Login</a>
                 <a class="nav-item nav-link" href="{{ url_for('register') }}">Register</a>
@@ -70,19 +77,7 @@
             {% endwith %}
             {% block content %}{% endblock %}
           </div>
-        <div class="col-md-4">
-          <div class="content-section">
-            <h3>Our Sidebar</h3>
-            <p class='text-muted'>You can put any information here you'd like.
-              <ul class="list-group">
-                <li class="list-group-item list-group-item-light">Latest Posts</li>
-                <li class="list-group-item list-group-item-light">Announcements</li>
-                <li class="list-group-item list-group-item-light">Calendars</li>
-                <li class="list-group-item list-group-item-light">etc</li>
-              </ul>
-            </p>
-          </div>
-        </div>
+          
       </div>
     </main>
 

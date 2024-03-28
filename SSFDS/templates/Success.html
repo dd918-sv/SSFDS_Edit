@@ -1,0 +1,17 @@
+{% extends 'layout.html' %} {% block content %}
+<style>
+  .success-message {
+    text-align: center;
+    margin-top: 50px;
+  }
+</style>
+<div class="success-message">
+  <h2 align="center">Payment Successful!</h2>
+  <p align =" center">Shortly you will be redirected to home.</p>
+</div>
+<script>
+  setTimeout(function () {
+    window.location.href = "/home";
+  }, 3000);
+</script>
+{% endblock %}

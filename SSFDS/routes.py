@@ -373,7 +373,7 @@ def remove_order(order_id):
 @login_required
 def OrderHistory():
     user = current_user
-    if(isinstance(user, User)):  
+    if(isinstance(user, User)):
         transactions=Transaction.query.filter_by(userID=user.id, paid=True).all()
         transactions.reverse()
         setoforders=[]
@@ -383,8 +383,17 @@ def OrderHistory():
             print(orders)
         size=len(transactions)
         return render_template('OrderHistory.html',title='Order History', setoforders=setoforders,transactions=transactions, size=size)
-    else:
-        return redirect(url_for('home'))
+    elif isinstance(user, Restaurant) :
+        transactions = Transaction.query.filter_by(restaurantID=user.id, paid=True).all()
+        transactions.reverse()
+        setoforders=[]
+        for transaction in transactions:
+            orders = Order.query.filter_by(transactionID=transaction.id).all()
+            setoforders.append(orders)
+        size=len(transactions)
+        return render_template('OrderHistory.html',title='Order history',size=size,setoforders=setoforders,transactions=transactions)
+    else :
+        return render_template('home.html')
 
 @app.route("/place_order", methods=['POST'])
 @login_required
@@ -401,10 +410,12 @@ def place_order():
     transaction.paymentMethod = payment_method
 
     transaction.amount = total_amount
+    transaction.deliveryCharge=delivery_charge
+    transaction.deliveryLatitude=current_user.latitude
+    transaction.deliveryLongitude=current_user.longitude
     transaction.paid = True
     transaction.date = datetime.now()
     db.session.commit()
-
     return jsonify({'success': True, 'total_price': total_amount}), 200
  
 
@@ -431,5 +442,21 @@ def calculate_distance(lat1, lon1, lat2, lon2):
     
     return distance
 
+@app.route('/payment/<int:amount>',methods=['GET','POST'])
+@login_required
+def Payment(amount):
+    if amount==0:
+        flash('Your cart is empty')
+        return redirect(url_for('goToCart'))
+    return render_template('Payment.html',price= amount)
 
-
+@app.route('/success',methods=['POST','GET'])
+@login_required
+def Success():
+    user = current_user
+    if isinstance(user, User):
+        transactions = Transaction.query.filter_by(userID=user.id, paid=False).all()
+        for t in transactions:
+            t.paid = True
+        db.session.commit()
+    return render_template('Success.html')
