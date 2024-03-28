@@ -4,6 +4,8 @@
         {%for dish in dishes%}
         <article class="media content-section">
             <div class="media-body">
+                <img class="rounded-circle account-img" src="{{ url_for('static', filename='dish_pics/' + dish.image) }}">
+
                 <div class="article-metadata">
                     <h2>{{ dish.name }}</h2>
                     <p class="article-content"><s style="color: red;">Original price: Rs. {{ dish.price }}</s></p>

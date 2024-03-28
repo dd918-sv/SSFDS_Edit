@@ -7,6 +7,8 @@
             {% for order in orders %}
             <div class="row" id="order-{{ order.id }}">
                 <div class="col-md-4">
+                    <img class="rounded-circle account-img" src="{{ url_for('static', filename='dish_pics/' + order.dish.image) }}">
+
                     <h5 class="card-title">{{ order.dish.name }}</h5>
                     <p class="card-text text-muted">Description: {{ order.dish.description }}</p>
                 </div>

@@ -1,5 +1,3 @@
-
-
 {% extends 'layout.html' %}
 {% block content %}
 <h1>Order History</h1>
@@ -12,7 +10,7 @@
       <h2>{{ transactions[i].user.username }}</h2>
     {% endif %}
   {% endif %}
-    <h4><p class="article-content">Date: {{ transactions[i].date }}</p></h4>
+    <h4><p class="article-content">Time: {{ transactions[i].date.strftime('%H:%M %d-%m-%Y') }}</p></h4>
     <table class="table">
         <thead>
             <tr>
@@ -31,7 +29,7 @@
             {% endfor %}
         </tbody>
     </table>
-    <h4><p class="article-content">Total: {{ transactions[i].amount }}</p></h4>
+    <h4><p class="article-content">Total: Rs {{ transactions[i].amount }}</p></h4>
     <h4><p class="article-content">Payment Status: {{ transactions[i].paid }}</p></h4>
 </div>
 {% endfor %}
