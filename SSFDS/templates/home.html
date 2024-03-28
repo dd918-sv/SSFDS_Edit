@@ -3,26 +3,41 @@
 <div class="container">
     <h1 class="my-4">Nearby Restaurants</h1>
     {% for restaurant in restaurants %}
-      {% set distance = none %}
+        {% set distance = None %}
         {% if current_user.is_authenticated %}
             {% set distance = calculate_distance(restaurant.latitude, restaurant.longitude, current_user.latitude, current_user.longitude) %}
         {% endif %}
-        {% if distance is none or distance < 10 %}
-        <article class="media content-section">
-          <img class="rounded-circle account-img" src="{{ url_for('static', filename='profile_pics/' + restaurant.image) }}">
-          <div class="media-body">
-            <h2><a class="article-title" href="#" onclick="enterMenu('{{ restaurant.id }}')">{{ restaurant.username }}</a></h2>
-            <p class="article-content">{{ restaurant.address }}</p>
-          </div>
-        </article>
+        {% if  distance < 10 %}
+            <article class="media content-section">
+                <img class="rounded-circle account-img" src="{{ url_for('static', filename='profile_pics/' + restaurant.image) }}">
+                <div class="media-body">
+                    <h2><a class="article-title" href="#" onclick="enterMenu('{{ restaurant.id }}')">{{ restaurant.username }}</a></h2>
+                    <p class="article-content">{{ restaurant.address }}</p>
+                </div>
+            </article>
         {% endif %}
     {% endfor %}
+    
+    <!-- Review Section -->
+    <div class="review-section">
+        <h2 class="my-4">Reviews</h2>
+        <div class="review-container">
+            <div class="review">Excellent website! User-friendly interface and great service.</div>
+            <div class="review" style="display: none;">I love the variety of restaurants available on this platform.</div>
+            <div class="review" style="display: none;">Easy to navigate and find nearby restaurants. Highly recommend!</div>
+            <div class="review" style="display: none;">Great experience using this website. Found some amazing restaurants nearby.</div>
+            <div class="review" style="display: none;">The website helped me discover new dining places. Will definitely use it again.</div>
+        </div>
+    </div>
 </div>
 
 <script>
+    var reviewIndex = 0;
+    var reviews = document.querySelectorAll('.review');
+
     function enterMenu(restaurant_id) {
         window.location.href = "/menu/" + restaurant_id;
-      }
+    }
 
     function calculateDistance(lat1, lon1, lat2, lon2) {
         const R = 6371; // Radius of the Earth in kilometers
@@ -38,5 +53,13 @@
         
         return distance;
     }
-    </script>
+
+    function toggleReview() {
+        reviews[reviewIndex].style.display = 'none';
+        reviewIndex = (reviewIndex + 1) % reviews.length;
+        reviews[reviewIndex].style.display = 'block';
+    }
+
+    setInterval(toggleReview, 5000);
+</script>
 {% endblock %}

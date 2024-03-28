@@ -22,7 +22,7 @@
                     </form>
                 </div>
                 <div class="col-md-4">
-                    <p id="price-{{ order.id }}" class="card-text"><strong>Price:</strong> Rs{{ order.dish.price * order.quantity*(100-transaction.discount)/100 }}</p>
+                    <p id="price-{{ order.id }}" class="card-text"><strong>Price:</strong> Rs{{ order.dish.price * order.quantity }}</p>
                 </div>
             </div>
             <br><br>
@@ -62,13 +62,13 @@
     }
 
     function updatePrice(orderId, price) {
-    var quantity = parseInt(document.getElementById("quantity-" + orderId).value);
-    var discountedPricePerUnit = price * (100 - transaction.discount) / 100; // Calculate discounted price
-    var totalPrice = quantity * discountedPricePerUnit; // Calculate total price
-    document.getElementById("price-" + orderId).innerHTML = "<strong>Price:</strong> Rs" + totalPrice.toFixed(2); // Update displayed price
-    updateQuantity(orderId, quantity); // Update quantity on the server
-    updateTotalAmount(); // Update total amount
-}
+        var quantity = parseInt(document.getElementById("quantity-" + orderId).value);
+        var pricePerUnit = price;  // Assuming all dishes have the same price
+        var totalPrice = quantity * pricePerUnit;
+        document.getElementById("price-" + orderId).innerHTML = "<strong>Price:</strong> Rs" + totalPrice.toFixed(2);
+        updateQuantity(orderId, quantity);
+        updateTotalAmount();
+    }
 
     function updateQuantity(orderId, quantity) {
         $.ajax({

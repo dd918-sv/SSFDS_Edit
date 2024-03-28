@@ -30,7 +30,10 @@ def home():
         restaurants = Restaurant.query.filter(Restaurant.latitude.isnot(None),Restaurant.longitude.isnot(None)).all()
     else:
         restaurants = Restaurant.query.all()
-    return render_template('home.html', restaurants=restaurants,title='Home',calculate_distance=calculate_distance)
+    
+    transactions = Transaction.query.filter_by().all()
+
+    return render_template('home.html', restaurants=restaurants,title='Home',calculate_distance=calculate_distance,transactions=transactions)
     
     
 
@@ -343,7 +346,7 @@ def goToCart():
     delivery_charge=0
     if distance>2:
         delivery_charge=ceil(5*(distance-2))
-    return render_template('cart.html', orders=orders,delivery_charge=delivery_charge, title='Cart',transaction=transaction)
+    return render_template('cart.html', orders=orders,delivery_charge=delivery_charge, title='Cart')
 
 @app.route('/update_quantity', methods=['POST'])
 @login_required
