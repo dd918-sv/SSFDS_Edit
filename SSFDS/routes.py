@@ -343,7 +343,7 @@ def goToCart():
     delivery_charge=0
     if distance>2:
         delivery_charge=ceil(5*(distance-2))
-    return render_template('cart.html', orders=orders,delivery_charge=delivery_charge, title='Cart')
+    return render_template('cart.html', orders=orders,delivery_charge=delivery_charge, title='Cart',transaction=transaction)
 
 @app.route('/update_quantity', methods=['POST'])
 @login_required

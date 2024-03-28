@@ -1,36 +1,57 @@
-{% extends 'layout.html' %}
-{% block content %}
+{% extends 'layout.html' %} {% block content %}
 <h1>Order History</h1>
 {% for i in range(size) %}
 <div class="content-section">
-    {% if current_user.is_authenticated %}
-    {% if current_user.__class__.__name__ == 'User' %}
-      <h2>{{ transactions[i].restaurant.username }}</h2>
-    {% elif current_user.__class__.__name__ == 'Restaurant' %}
-      <h2>{{ transactions[i].user.username }}</h2>
-    {% endif %}
-  {% endif %}
-    <h4><p class="article-content">Time: {{ transactions[i].date.strftime('%H:%M %d-%m-%Y') }}</p></h4>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Dish</th>
-                <th>Quantity</th>
-                <th>Price</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for order in setoforders[i] %}
-            <tr>
-                <td>{{ order.dish.name }}</td>
-                <td>{{ order.quantity }}</td>
-                <td>{{ order.dish.price * order.quantity }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <h4><p class="article-content">Total: Rs {{ transactions[i].amount }}</p></h4>
-    <h4><p class="article-content">Payment Status: {{ transactions[i].paid }}</p></h4>
+  {% if current_user.is_authenticated %} {% if current_user.__class__.__name__
+  == 'User' %}
+  <h2>{{ transactions[i].restaurant.username }}</h2>
+  {% elif current_user.__class__.__name__ == 'Restaurant' %}
+  <h2>{{ transactions[i].user.username }}</h2>
+  {% endif %} {% endif %}
+  <h4>
+    <p class="article-content">
+      Time: {{ transactions[i].date.strftime('%H:%M %d-%m-%Y') }}
+    </p>
+  </h4>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Dish</th>
+        <th>Quantity</th>
+        <th>Price</th>
+        <th>Discount</th>
+        <th>Final Price</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for order in setoforders[i] %}
+      <tr>
+        <td>{{ order.dish.name }}</td>
+        <td>{{ order.quantity }}</td>
+        <td>{{ order.dish.price * order.quantity }}</td>
+        <td>{{ transactions[i].discount/100 *(order.dish.price*order.quantity)}}</td>
+        <td>{{ order.dish.price * order.quantity -transactions[i].discount/100 *(order.dish.price*order.quantity) }}</td>
+      </tr>
+      {% endfor %}
+      <tr>
+        <td>Delivery Charge</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>{{ transactions[i].deliveryCharge }}</td>
+      </tr>
+      <tr>
+        <td>Total</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>{{ transactions[i].amount }}</td>
+      </tr>
+    </tbody>
+  </table>
+  <!-- <h4><p class="article-content">Total: Rs {{ transactions[i].amount }}</p></h4> -->
+  <h4>
+    <p class="article-content">Payment Status: {{ transactions[i].paid }}</p>
+  </h4>
 </div>
-{% endfor %}
-{% endblock content %}
+{% endfor %} {% endblock content %}
