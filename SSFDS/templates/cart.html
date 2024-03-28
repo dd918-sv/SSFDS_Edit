@@ -40,6 +40,13 @@
                     </div>
                 </div>
             </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="alert alert-success" role="alert">
+                        <strong>Total Amount:</strong> Rs<span id="totalAmount">{{ total_amount }}</span>
+                    </div>
+                </div>
+            </div>
             <button type="button" class="btn btn-primary" onclick="placeOrder()">Place Order</button>
         </div>
     </div>
@@ -57,7 +64,8 @@
         var pricePerUnit = price;  // Assuming all dishes have the same price
         var totalPrice = quantity * pricePerUnit;
         document.getElementById("price-" + orderId).innerHTML = "<strong>Price:</strong> Rs" + totalPrice.toFixed(2);
-updateQuantity(orderId, quantity);
+        updateQuantity(orderId, quantity);
+        updateTotalAmount();
     }
 
     function updateQuantity(orderId, quantity) {
@@ -77,6 +85,24 @@ updateQuantity(orderId, quantity);
         });
     }
 
+    function updateTotalAmount() {
+        var total = 0;
+        var priceElements = document.querySelectorAll('[id^="price-"]');
+        priceElements.forEach(function(element) {
+            var price = parseFloat(element.textContent.split('Rs')[1]);
+            total += price;
+        });
+
+        var deliveryCharge = parseFloat(document.getElementById("deliveryCharge").textContent);
+        var selfPickupCheckbox = document.getElementById("selfPickupCheckbox");
+        
+        if (!selfPickupCheckbox.checked) {
+            total += deliveryCharge;
+        }
+
+        document.getElementById("totalAmount").textContent = total.toFixed(2);
+    }
+
     function toggleDeliveryCharges() {
         var selfPickupCheckbox = document.getElementById("selfPickupCheckbox");
         var deliveryChargesDiv = document.getElementById("deliveryChargesDiv");
@@ -85,28 +111,25 @@ updateQuantity(orderId, quantity);
         } else {
             deliveryChargesDiv.style.display = "block";
         }
+        updateTotalAmount();
     }
 
     function placeOrder() {
-        var orders = [];
-        var quantityInputs = document.querySelectorAll('.quantity-input');
-        quantityInputs.forEach(function(input) {
-            var orderId = input.id.split("-")[1];
-            var quantity = parseInt(input.value);
-            orders.push({ "dish_id": orderId, "quantity": quantity });
-        });
-
-        var paymentMethod = "Cash";  // Default payment method
+        var paymentMethod = "Cash"; 
         var selfPickupCheckbox = document.getElementById("selfPickupCheckbox");
+        var deliveryCharge = parseFloat(document.getElementById("deliveryCharge").textContent);
+        var totalAmount = parseFloat(document.getElementById("totalAmount").textContent);
+        
         if (selfPickupCheckbox.checked) {
             paymentMethod = "Prepaid";
+            deliveryCharge = 0; 
         }
 
         $.ajax({
             url: '/place_order',
             type: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({ "orders": orders, "payment_method": paymentMethod }),
+            data: JSON.stringify({"payment_method": paymentMethod, "delivery_charge": deliveryCharge, "total_amount": totalAmount}),
             success: function(response) {
                 if (response.success) {
                     alert("Order placed successfully!");
@@ -120,6 +143,7 @@ updateQuantity(orderId, quantity);
             }
         });
     }
+    updateTotalAmount();
 </script>
 
 {% endblock %}

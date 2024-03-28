@@ -6,7 +6,8 @@
             <div class="media-body">
                 <div class="article-metadata">
                     <h2>{{ dish.name }}</h2>
-                    <p class="article-content">Rs. {{ dish.price }}</p>
+                    <p class="article-content"><s style="color: red;">Original price: Rs. {{ dish.price }}</s></p>
+                    <p class="article-content" style="color: green;">Discounted price: Rs. {{ dish.price*(100-discount)/100 }}</p>
                 </div>
                 <p class="article-content">{{ dish.description }}</p>
                 <button class="btn btn-outline-info" onclick="addToCart('{{restaurant.id}}','{{current_user.id}}','{{dish.id}}',this)">Add to Cart</button>
@@ -15,6 +16,7 @@
     {%endfor%}
     <script>
         function addToCart(restaurant_id, user_id, dish_id,button) {
+            console.log(232)
         fetch(`/addToCart/${restaurant_id}/${user_id}/${dish_id}`, {
             method: 'POST',
             headers: {

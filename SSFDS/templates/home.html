@@ -3,26 +3,24 @@
 <div class="container">
     <h1 class="my-4">Nearby Restaurants</h1>
     {% for restaurant in restaurants %}
-{% set distance = None %}
+      {% set distance = none %}
         {% if current_user.is_authenticated %}
             {% set distance = calculate_distance(restaurant.latitude, restaurant.longitude, current_user.latitude, current_user.longitude) %}
         {% endif %}
         {% if distance is none or distance < 10 %}
         <article class="media content-section">
+          <img class="rounded-circle account-img" src="{{ url_for('static', filename='profile_pics/' + restaurant.image) }}">
           <div class="media-body">
             <h2><a class="article-title" href="#" onclick="enterMenu('{{ restaurant.id }}')">{{ restaurant.username }}</a></h2>
             <p class="article-content">{{ restaurant.address }}</p>
-<!-- {% if distance is not none %}
-                        <p>Distance: {{ distance }} km</p>
-                    {% endif %} -->
           </div>
         </article>
-{% endif %}
+        {% endif %}
     {% endfor %}
 </div>
 
 <script>
-      function enterMenu(restaurant_id) {
+    function enterMenu(restaurant_id) {
         window.location.href = "/menu/" + restaurant_id;
       }
 
