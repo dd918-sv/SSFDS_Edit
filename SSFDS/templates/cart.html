@@ -56,6 +56,17 @@
                     </div>
                 </div>
             </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label for="paymentMode">Mode of Payment:</label>
+                        <select class="form-control" id="paymentMode" onchange="updateTotalAmount()">
+                            <option value="cash">Cash on Delivery</option>
+                            <option value="online">Online Payment</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
             <button type="button" class="btn btn-primary" onclick="placeOrder()">Place Order</button>
         </div>
     </div>
@@ -126,13 +137,12 @@
     }
 
     function placeOrder() {
-        var paymentMethod = "Cash"; 
+        var paymentMethod = document.getElementById("paymentMode").value;
         var selfPickupCheckbox = document.getElementById("selfPickupCheckbox");
         var deliveryCharge = parseFloat(document.getElementById("deliveryCharge").textContent);
         var discountedAmount = parseFloat(document.getElementById("discountedAmount").textContent);
-        
         if (selfPickupCheckbox.checked) {
-            paymentMethod = "Prepaid";
+            paymentMethod = "online";
             deliveryCharge = 0; 
         }
 
@@ -142,10 +152,14 @@
             contentType: 'application/json',
             data: JSON.stringify({"payment_method": paymentMethod, "delivery_charge": deliveryCharge, "discounted_amount": discountedAmount}),
             success: function(response) {
-                if (response.success) {
+                if (response.success && paymentMethod=="cash") {
                     alert("Order placed successfully!");
                     window.location.href = '/home'; // Redirect to home page
-                } else {
+                } 
+                else if(response.success && paymentMethod=="online"){
+                    window.location.href = '/payment/' + discountedAmount;
+                }
+                else {
                     alert("Failed to place order. Please try again.");
                 }
             },

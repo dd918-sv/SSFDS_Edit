@@ -343,7 +343,7 @@ def goToCart():
     delivery_charge=0
     discount=transaction.discount
     if distance>2:
-        delivery_charge=ceil(5*(distance-2))
+        delivery_charge=(5*(ceil(distance-2)))
     return render_template('cart.html', orders=orders,delivery_charge=delivery_charge, title='Cart', discount=discount)
 
 @app.route('/update_quantity', methods=['POST'])
@@ -407,14 +407,13 @@ def place_order():
     transaction = Transaction.query.filter_by(userID=user_id, paid=False).first()
     if not transaction:
         return jsonify({'success': False, 'message': 'No active transaction found.'}), 404
-
     transaction.paymentMethod = payment_method
-
     transaction.amount = discounted_amount
     transaction.deliveryCharge=delivery_charge
     transaction.deliveryLatitude=current_user.latitude
     transaction.deliveryLongitude=current_user.longitude
-    transaction.paid = True
+    if(payment_method=='cash'):
+        transaction.paid = True
     transaction.date = datetime.now()
     db.session.commit()
     return jsonify({'success': True, 'total_price': discounted_amount}), 200
@@ -456,8 +455,7 @@ def Payment(amount):
 def Success():
     user = current_user
     if isinstance(user, User):
-        transactions = Transaction.query.filter_by(userID=user.id, paid=False).all()
-        for t in transactions:
-            t.paid = True
+        transaction = Transaction.query.filter_by(userID=user.id, paid=False).first()
+        transaction.paid=True
         db.session.commit()
     return render_template('Success.html')
