@@ -3,6 +3,7 @@
 <div class="container">
     <h1 class="my-4">My Orders</h1>
     <div class="card mb-3">
+        
         <div class="card-body">
             {% for order in orders %}
             <div class="row" id="order-{{ order.id }}">
@@ -42,8 +43,16 @@
             </div>
             <div class="row">
                 <div class="col-md-12">
+                    <div class="alert alert-info" role="alert">
+                        <strong>Total Amount: </strong> Rs <span id="totalAmount"></span><br>
+                        <strong>Discout offered: </strong><span id="discount">{{discount}}</span>%
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
                     <div class="alert alert-success" role="alert">
-                        <strong>Total Amount:</strong> Rs<span id="totalAmount">{{ total_amount }}</span>
+                        <strong>Amount To Pay: </strong> Rs <span id="discountedAmount"></span><br>
                     </div>
                 </div>
             </div>
@@ -94,6 +103,7 @@
         });
 
         var deliveryCharge = parseFloat(document.getElementById("deliveryCharge").textContent);
+        var discount = parseFloat(document.getElementById("discount").textContent);
         var selfPickupCheckbox = document.getElementById("selfPickupCheckbox");
         
         if (!selfPickupCheckbox.checked) {
@@ -101,6 +111,7 @@
         }
 
         document.getElementById("totalAmount").textContent = total.toFixed(2);
+        document.getElementById("discountedAmount").textContent = Math.ceil(total.toFixed(2)*(100-discount)/100);
     }
 
     function toggleDeliveryCharges() {
@@ -118,7 +129,7 @@
         var paymentMethod = "Cash"; 
         var selfPickupCheckbox = document.getElementById("selfPickupCheckbox");
         var deliveryCharge = parseFloat(document.getElementById("deliveryCharge").textContent);
-        var totalAmount = parseFloat(document.getElementById("totalAmount").textContent);
+        var discountedAmount = parseFloat(document.getElementById("discountedAmount").textContent);
         
         if (selfPickupCheckbox.checked) {
             paymentMethod = "Prepaid";
@@ -129,7 +140,7 @@
             url: '/place_order',
             type: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({"payment_method": paymentMethod, "delivery_charge": deliveryCharge, "total_amount": totalAmount}),
+            data: JSON.stringify({"payment_method": paymentMethod, "delivery_charge": deliveryCharge, "discounted_amount": discountedAmount}),
             success: function(response) {
                 if (response.success) {
                     alert("Order placed successfully!");

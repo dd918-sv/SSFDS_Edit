@@ -341,9 +341,10 @@ def goToCart():
     restaurant=order.transaction.restaurant
     distance=calculate_distance(restaurant.latitude,restaurant.longitude,user.latitude,user.longitude)
     delivery_charge=0
+    discount=transaction.discount
     if distance>2:
         delivery_charge=ceil(5*(distance-2))
-    return render_template('cart.html', orders=orders,delivery_charge=delivery_charge, title='Cart')
+    return render_template('cart.html', orders=orders,delivery_charge=delivery_charge, title='Cart', discount=discount)
 
 @app.route('/update_quantity', methods=['POST'])
 @login_required
@@ -401,7 +402,7 @@ def place_order():
     data = request.json
     payment_method = data.get('payment_method')
     delivery_charge=data.get('delivery_charge')
-    total_amount=data.get('total_amount')
+    discounted_amount=data.get('discounted_amount')
     user_id = current_user.id
     transaction = Transaction.query.filter_by(userID=user_id, paid=False).first()
     if not transaction:
@@ -409,14 +410,14 @@ def place_order():
 
     transaction.paymentMethod = payment_method
 
-    transaction.amount = total_amount
+    transaction.amount = discounted_amount
     transaction.deliveryCharge=delivery_charge
     transaction.deliveryLatitude=current_user.latitude
     transaction.deliveryLongitude=current_user.longitude
     transaction.paid = True
     transaction.date = datetime.now()
     db.session.commit()
-    return jsonify({'success': True, 'total_price': total_amount}), 200
+    return jsonify({'success': True, 'total_price': discounted_amount}), 200
  
 
 

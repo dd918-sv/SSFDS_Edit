@@ -31,7 +31,8 @@
             {% endfor %}
         </tbody>
     </table>
-    <h4><p class="article-content">Total: {{ transactions[i].amount }}</p></h4>
+    <h4><p class="article-content">Discount Offered: {{ transactions[i].discount }} %</p></h4>
+    <h4><p class="article-content">Amount Payed: Rs. {{ transactions[i].amount }}</p></h4>
     <h4><p class="article-content">Payment Status: {{ transactions[i].paid }}</p></h4>
 </div>
 {% endfor %}
