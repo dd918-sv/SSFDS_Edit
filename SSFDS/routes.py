@@ -306,6 +306,10 @@ def addToCart(restaurant_id, user_id, dish_id):
             transaction.discount = 20
         db.session.add(transaction)
         db.session.commit()
+        order = Order(transactionID=transaction.id, dishID=dish_id, quantity=1)
+        db.session.add(order)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Successfully Added', 'quantity': 1})
     else:
         checkOrder = Order.query.filter_by(transactionID=transaction.id).all()
         if checkOrder:
