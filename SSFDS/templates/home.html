@@ -3,31 +3,48 @@
 <div class="container">
     <h1 class="my-4">Nearby Restaurants</h1>
     {% for restaurant in restaurants %}
-        {% set distance = None %}
-        {% if current_user.is_authenticated %}
-            {% set distance = calculate_distance(restaurant.latitude, restaurant.longitude, current_user.latitude, current_user.longitude) %}
-        {% endif %}
-        {% if  distance < 10 %}
-            <article class="media content-section">
-                <img class="rounded-circle account-img" src="{{ url_for('static', filename='profile_pics/' + restaurant.image) }}">
-                <div class="media-body">
-                    <h2><a class="article-title" href="#" onclick="enterMenu('{{ restaurant.id }}')">{{ restaurant.username }}</a></h2>
-                    <p class="article-content">{{ restaurant.address }}</p>
-                </div>
-            </article>
-        {% endif %}
-    {% endfor %}
+    {% set distance = None %}
+    {% if current_user.is_authenticated %}
+        {% set distance = calculate_distance(restaurant.latitude, restaurant.longitude, current_user.latitude, current_user.longitude) %}
+    {% endif %}
+    {% if distance == None or distance < 10 %}
+        <article class="media content-section">
+            <img class="rounded-circle account-img" src="{{ url_for('static', filename='profile_pics/' + restaurant.image) }}">
+            <div class="media-body">
+                <h2>
+                    <a class="article-title" href="#" onclick="enterMenu('{{ restaurant.id }}')">
+                        {{ restaurant.username }}
+                        {% if restaurant.non_vegetarian %}
+                            (Non-Veg)
+                        {% else %}
+                            (Veg)
+                        {% endif %}
+                    </a>
+                </h2>
+                <p class="article-content">{{ restaurant.address }}</p>
+            </div>
+        </article>
+    {% endif %}
+{% endfor %}
+
     
     <!-- Review Section -->
-    <div class="review-section">
-        <h2 class="my-4">Reviews</h2>
-        <div class="review-container">
-            <div class="review">Excellent website! User-friendly interface and great service.</div>
-            <div class="review" style="display: none;">I love the variety of restaurants available on this platform.</div>
-            <div class="review" style="display: none;">Easy to navigate and find nearby restaurants. Highly recommend!</div>
-            <div class="review" style="display: none;">Great experience using this website. Found some amazing restaurants nearby.</div>
-            <div class="review" style="display: none;">The website helped me discover new dining places. Will definitely use it again.</div>
-        </div>
+    <h2 class="my-4">Reviews</h2>
+    <div class="review-container">
+        {% for t in transactions %}
+            {% if t.review %}
+                <div class="review" style="display: {{ 'block' if loop.index == 1 else 'none' }}">
+                    <article class="media content-section">
+                        <img class="rounded-circle account-img" src="{{ url_for('static', filename='profile_pics/' + t.user.image) }}">
+                        <div class="media-body">
+                            <h2><a class="account-heading" href="#">{{t.user.username}}</a></h2>
+                            <p class="text-secondary"> ordered from {{ t.restaurant.username }} on {{t.date.strftime('%B %d, %Y')}}</p>
+                            <p class="text-secondary">{{ t.review }}</p>
+                        </div>
+                    </article>
+                </div>
+            {% endif %}
+        {% endfor %}
     </div>
 </div>
 
@@ -37,21 +54,6 @@
 
     function enterMenu(restaurant_id) {
         window.location.href = "/menu/" + restaurant_id;
-    }
-
-    function calculateDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371; // Radius of the Earth in kilometers
-        const dLat = (lat2 - lat1) * Math.PI / 180;  // Convert latitude difference to radians
-        const dLon = (lon2 - lon1) * Math.PI / 180;  // Convert longitude difference to radians
-        
-        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        const distance = R * c; // Distance in kilometers
-        
-        return distance;
     }
 
     function toggleReview() {

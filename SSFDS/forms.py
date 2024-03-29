@@ -14,6 +14,7 @@ class RestaurantRegistrationForm(FlaskForm):
     email = StringField('Email',
                         validators=[DataRequired(), Email()])
     address = StringField('Address', validators=[DataRequired(), Length(min=10, max=200)])
+    non_vegetarian = BooleanField('Non-Vegetarian') 
     password = PasswordField('Password', validators=[DataRequired()])
     confirm_password = PasswordField('Confirm Password',
                                      validators=[DataRequired(), EqualTo('password')])

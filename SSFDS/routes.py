@@ -31,7 +31,7 @@ def home():
     else:
         restaurants = Restaurant.query.all()
     
-    transactions = Transaction.query.filter_by().all()
+    transactions = Transaction.query.all()
 
     return render_template('home.html', restaurants=restaurants,title='Home',calculate_distance=calculate_distance,transactions=transactions)
     
@@ -48,7 +48,7 @@ def restaurantregister():
     form = RestaurantRegistrationForm()
     if form.validate_on_submit():
         hashedPassword=bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        restaurant = Restaurant(id= identity(), username=form.username.data, email=form.email.data, password=hashedPassword, address=form.address.data)
+        restaurant = Restaurant(id= identity(), username=form.username.data, email=form.email.data, password=hashedPassword, address=form.address.data,non_vegetarian=form.non_vegetarian.data)
         db.session.add(restaurant)
         db.session.commit()
         flash('Your account has been created! You can now login', 'success')
@@ -302,7 +302,7 @@ def addToCart(restaurant_id, user_id, dish_id):
     transaction = Transaction.query.filter_by(userID=user_id, paid=False).first()
     
     if transaction is None:
-        transaction = Transaction(userID=user_id, restaurantID=restaurant_id, paymentMethod='cash', paid=False, orderplaced=False, discount=0)
+        transaction = Transaction(userID=user_id, restaurantID=restaurant_id, paymentMethod='cash', paid=False, orderplaced=False, discount=0,review='')
         if current_user.ngo:
             transaction.discount = 40
         else:
@@ -405,6 +405,7 @@ def place_order():
     payment_method = data.get('payment_method')
     delivery_charge=data.get('delivery_charge')
     total_amount=data.get('total_amount')
+    review=data.get('review')
     user_id = current_user.id
     transaction = Transaction.query.filter_by(userID=user_id, paid=False).first()
     if not transaction:
@@ -418,6 +419,7 @@ def place_order():
     transaction.deliveryLongitude=current_user.longitude
     transaction.paid = True
     transaction.date = datetime.now()
+    transaction.review= review
     db.session.commit()
     return jsonify({'success': True, 'total_price': total_amount}), 200
  

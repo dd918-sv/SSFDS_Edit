@@ -12,10 +12,6 @@ def loadUser(userId):
     else: 
         return restaurant
 
-# @login_manager.user_loader
-# def loadRestaurant(restaurantId):
-#     return Restaurant.query.get(int(restaurantId))
-
 class Restaurant(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), nullable=False)
@@ -29,6 +25,7 @@ class Restaurant(db.Model, UserMixin):
     content = db.Column(db.Text, nullable=True)
     dishes = db.relationship('Dish', backref='restaurant', lazy=True)
     transaction = db.relationship('Transaction', backref='restaurant', lazy=True)
+    non_vegetarian = db.Column(db.Boolean)
 
     def __repr__(self):
         return f"Restaurant('{self.username}', '{self.email}', '{self.image}', '{self.latitude}', '{self.longitude}')"
@@ -65,6 +62,7 @@ class User(db.Model, UserMixin):
     transaction = db.relationship('Transaction', backref='user', lazy=True)
     DonorUser = db.relationship('Donation', foreign_keys='[Donation.userID]', backref='normal_user', lazy=True)
     ReceiverNGO = db.relationship('Donation', foreign_keys='[Donation.ngoID]', backref='ngo_user', lazy=True)
+
 
     def __repr__(self):
         return f"User('{self.username}', '{self.email}', '{self.image}, '{self.ngo}', '{self.latitude}', '{self.longitude}')"
@@ -114,6 +112,7 @@ class Transaction(db.Model):
     date = db.Column(db.DateTime, nullable=True)
     paymentMethod = db.Column(db.String(20), nullable=False)
     paid = db.Column(db.Boolean)
+    review= db.Column(db.Text, nullable=True)
 
     def __repr__(self):
         return f"Transaction('{self.userID}', '{self.restaurantID}', '{self.date}')"

@@ -51,6 +51,10 @@
             </div>
             <button type="button" class="btn btn-primary" onclick="placeOrder()">Place Order</button>
         </div>
+        <div class="form-group">
+            <label for="review">Overall Review (Optional):</label>
+            <textarea class="form-control" id="review" ></textarea>
+        </div>
     </div>
 </div>
 
@@ -117,6 +121,7 @@
     }
 
     function placeOrder() {
+        var review = document.getElementById("review").value;
         var paymentMethod = "Cash"; 
         var selfPickupCheckbox = document.getElementById("selfPickupCheckbox");
         var deliveryCharge = parseFloat(document.getElementById("deliveryCharge").textContent);
@@ -131,7 +136,7 @@
             url: '/place_order',
             type: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({"payment_method": paymentMethod, "delivery_charge": deliveryCharge, "total_amount": totalAmount}),
+            data: JSON.stringify({"payment_method": paymentMethod, "delivery_charge": deliveryCharge, "total_amount": totalAmount,"review": review}),
             success: function(response) {
                 if (response.success) {
                     alert("Order placed successfully!");

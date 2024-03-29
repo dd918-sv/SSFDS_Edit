@@ -46,6 +46,17 @@
                         {{ form.address(class="form-control form-control-lg") }}
                     {% endif %}
                 </div>
+                <div class="form-group d-flex align-items-center">
+                    {{ form.non_vegetarian.label(class="form-control-label mr-2") }}
+                    {{ form.non_vegetarian(type='checkbox') }}
+                    {% if form.non_vegetarian.errors %}
+                        <div class="invalid-feedback ml-2">
+                            {% for error in form.non_vegetarian.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
                 <div class="form-group">
                     {{ form.password.label(class="form-control-label") }}
                     {% if form.password.errors %}
