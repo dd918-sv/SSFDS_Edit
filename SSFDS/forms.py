@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from flask_wtf.recaptcha import RecaptchaField
 from flask_wtf.file import FileField, FileAllowed
 from flask_login import current_user
-from wtforms import StringField, PasswordField, SubmitField, BooleanField,IntegerField, FloatField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField,IntegerField, FloatField, TimeField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from SSFDS.models import User, Restaurant
 from SSFDS import bcrypt
@@ -126,3 +126,12 @@ class DonationForm(FlaskForm):
             raise ValidationError('Minimum amount is 100')
         elif amount.data>100000000:
             raise ValidationError('Maximum amount is 100000000')
+        
+class TimeForm(FlaskForm):
+    start = TimeField('Start Time', format='%H:%M', validators=[DataRequired()])
+    end = TimeField('End Time', format='%H:%M', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+    def validate_time(self, start, end):
+        if start.data>end.data:
+            raise ValidationError('Start time must be before end time')

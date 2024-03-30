@@ -1,7 +1,7 @@
 from SSFDS import db, login_manager,app
 from flask_login import UserMixin
 from itsdangerous import URLSafeTimedSerializer as Serializer
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 
 @login_manager.user_loader
 def loadUser(userId):
@@ -133,3 +133,8 @@ class Donation(db.Model):
 
     def __repr__(self):
         return f"Donation('{self.normal_user}', '{self.ngo_user}', '{self.amount}', '{self.date}')"
+
+class Time(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    start = db.Column(db.Time, nullable=False, default=time(20, 0))
+    end = db.Column(db.Time, nullable=False, default=time(21, 0))

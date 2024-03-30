@@ -1,16 +1,24 @@
 import os
 import secrets
-from datetime import datetime
+from datetime import datetime, time
 from PIL import Image
 from flask import render_template, url_for, flash, redirect, request, jsonify
 from SSFDS import app, db, bcrypt, mail
-from SSFDS.forms import RestaurantRegistrationForm, UserRegistrationForm, LoginForm, UpdateForm, AddDishForm, ForgotPasswordForm, ResetPasswordForm, DonationForm
-from SSFDS.models import Restaurant, User, Dish, Transaction, Order, Donation
+from SSFDS.forms import RestaurantRegistrationForm, UserRegistrationForm, LoginForm, UpdateForm, AddDishForm, ForgotPasswordForm, ResetPasswordForm, DonationForm, TimeForm
+from SSFDS.models import Restaurant, User, Dish, Transaction, Order, Donation, Time
 from flask_login import login_user, current_user, logout_user, login_required
 from itsdangerous import URLSafeTimedSerializer as Serializer
 from flask_mail import Message
 from math import radians, sin, cos, sqrt, atan2, ceil
 
+global start
+global end
+start=time(16, 0)
+end=time(21, 0)
+
+def is_time_between(start_time, end_time):
+    check_time = datetime.now().time()
+    return start_time <= check_time <= end_time
 
 def identity():
     return len(User.query.all())+len(Restaurant.query.all())+1
@@ -20,6 +28,8 @@ def identity():
 def home():
     user=current_user
     restaurants=None
+    if(user.is_authenticated and user.id==1):
+        return redirect(url_for('admin'))
     if(user.is_authenticated and (user.latitude is None or user.longitude is None)):
         if(isinstance(user, User)):
             flash('Please enter your location first in Account settings for getting list of restaurants','warning')
@@ -32,10 +42,70 @@ def home():
         restaurants = Restaurant.query.all()
     return render_template('home.html', restaurants=restaurants,title='Home',calculate_distance=calculate_distance)
     
+@app.route("/admin")
+@login_required
+def admin():
+    if(current_user.is_authenticated and current_user.id!=1):
+        return redirect(url_for('home'))
+    else:
+        return render_template('admin.html', title='Admin')
+
+@app.route("/allRestaurants")
+@login_required
+def allRestaurants():
+    if(current_user.is_authenticated and current_user.id!=1):
+        return redirect(url_for('home'))
+    else:
+        restaurants=Restaurant.query.all()
+        return render_template('allRestaurants.html', restaurants=restaurants,title='All Restaurants')
+
+@app.route("/allUsers")
+@login_required
+def allUsers():
+    if(current_user.is_authenticated and current_user.id!=1):
+        return redirect(url_for('home'))
+    else:
+        users=User.query.filter_by(ngo=False).all()
+        return render_template('allUsers.html', users=users,title='All Users')
+
+@app.route("/allNgos")
+@login_required
+def allNgo():
+    if(current_user.is_authenticated and current_user.id!=1):
+        return redirect(url_for('home'))
+    else:
+        ngos=User.query.filter_by(ngo=True).all()
+        return render_template('allNgos.html', ngos=ngos,title='All Ngo')
     
+@app.route("/changetimewindow", methods=['GET', 'POST'])
+@login_required
+def changetimewindow():
+    if(current_user.is_authenticated and current_user.id!=1):
+        return redirect(url_for('home'))
+    else:
+        form = TimeForm()
+        if form.validate_on_submit():
+            start=form.start.data
+            end=form.end.data
+            print(start, end)
+            timings=Time.query.all()
+            if(timings==None or timings==[]):
+                time=Time(start=start, end=end)
+                db.session.add(time)
+                db.session.commit()
+            else:
+                time=Time.query.first()
+                time.start=start
+                time.end=end
+                db.session.commit()
+            flash('Time window has been changed','success')
+            return redirect(url_for('admin'))
+        return render_template('changetimewindow.html', title='Change Time Window', form=form)
 
 @app.route("/about")
 def about():
+    if(current_user.is_authenticated and current_user.id==1):
+        return redirect(url_for('admin'))
     return render_template('about.html', title='About')
 
 @app.route("/RestaurantRegister", methods=['GET', 'POST'])
@@ -81,13 +151,16 @@ def login():
             return redirect(next_page) if next_page else redirect(url_for('home'))
         elif restaurant and bcrypt.check_password_hash(restaurant.password, form.password.data):
             current_time = datetime.now()
-            if 20 <= current_time.hour < 20.5 or 1:  
+            times=Time.query.first()
+            if times==None or times.start==None or times.end==None:
+                flash('Restaurant login is not available currently','warning')
+            elif is_time_between(times.start, times.end):  
                 login_user(restaurant, remember=form.remember.data)
                 flash('Login Successful','success')
                 next_page = request.args.get('next')
                 return redirect(next_page) if next_page else redirect(url_for('home'))
             else:
-                flash('Restaurant login is only available between 8 PM and 8:30 PM.', 'warning')
+                flash(f'Restaurant login is only available between {(times.start).strftime("%I:%M %p")} and {(times.end).strftime("%I:%M %p")}.', 'warning')
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')
     return render_template('login.html', title='Login', form=form)
@@ -111,6 +184,8 @@ def save_picture(formPicture, path):
 @app.route("/account", methods=['GET', 'POST'])
 @login_required
 def account():
+    if(current_user.is_authenticated and current_user.id==1):
+        return redirect(url_for('admin'))
     form = UpdateForm()
     if form.validate_on_submit():
         if form.picture.data:
