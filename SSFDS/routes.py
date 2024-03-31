@@ -66,6 +66,8 @@ def allUsers():
         return redirect(url_for('home'))
     else:
         users=User.query.filter_by(ngo=False).all()
+        if len(users) > 0:
+            users = users[1:]
         return render_template('allUsers.html', users=users,title='All Users')
 
 @app.route("/allNgos")
@@ -150,17 +152,10 @@ def login():
             next_page = request.args.get('next')
             return redirect(next_page) if next_page else redirect(url_for('home'))
         elif restaurant and bcrypt.check_password_hash(restaurant.password, form.password.data):
-            current_time = datetime.now()
-            times=Time.query.first()
-            if times==None or times.start==None or times.end==None:
-                flash('Restaurant login is not available currently','warning')
-            elif is_time_between(times.start, times.end):  
-                login_user(restaurant, remember=form.remember.data)
-                flash('Login Successful','success')
-                next_page = request.args.get('next')
-                return redirect(next_page) if next_page else redirect(url_for('home'))
-            else:
-                flash(f'Restaurant login is only available between {(times.start).strftime("%I:%M %p")} and {(times.end).strftime("%I:%M %p")}.', 'warning')
+            login_user(restaurant, remember=form.remember.data)
+            flash('Login Successful','success')
+            next_page = request.args.get('next')
+            return redirect(next_page) if next_page else redirect(url_for('home'))
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')
     return render_template('login.html', title='Login', form=form)
@@ -216,8 +211,17 @@ def account():
 @app.route("/addDish", methods=['GET', 'POST'])
 @login_required
 def addDish():
+    if(isinstance(current_user, User)):
+        return redirect(url_for('home'))
     if current_user.latitude is None or current_user.longitude is None:
         flash('Please enter your location first in Account settings','warning')
+        return redirect(url_for('account'))
+    times=Time.query.first()
+    if times==None or times.start==None or times.end==None:
+                flash('Restaurant\'s can not add plates currently. Try contacting the administrator.','warning')
+                return redirect(url_for('account'))
+    elif not is_time_between(times.start, times.end):
+        flash(f'Restaurant\'s can add plates only between {(times.start).strftime("%I:%M %p")} and {(times.end).strftime("%I:%M %p")}.', 'warning')
         return redirect(url_for('account'))
     form=AddDishForm()
     if form.validate_on_submit():
@@ -250,6 +254,8 @@ def sendMail(user):
 
 @app.route('/forgotPassword', methods=['GET', 'POST'])
 def forgotPassword():
+    if(current_user.is_authenticated and current_user.id==1):
+        return redirect(url_for('admin'))
     form=ForgotPasswordForm()
     if form.validate_on_submit():
         user=User.query.filter_by(email=form.email.data).first()
@@ -289,6 +295,8 @@ def reset_token(token):
 @app.route('/DonationsReceived')
 @login_required
 def DonationsReceived():
+    if(current_user.is_authenticated and current_user.id==1):
+        return redirect(url_for('admin'))
     user = current_user
     if(isinstance(user, User) and current_user.ngo==True):
         donations=Donation.query.filter_by(ngoID=current_user.id).all()
@@ -299,6 +307,8 @@ def DonationsReceived():
 @app.route('/DonationsGiven')
 @login_required
 def DonationsGiven():
+    if(current_user.is_authenticated and current_user.id==1):
+        return redirect(url_for('admin'))
     user = current_user
     if(isinstance(user, User) and current_user.ngo==False):
         donations=Donation.query.filter_by(userID=current_user.id).all()
@@ -309,6 +319,8 @@ def DonationsGiven():
 @app.route('/Donate')
 @login_required
 def Donate():
+    if(current_user.is_authenticated and current_user.id==1):
+        return redirect(url_for('admin'))
     user = current_user
     if(isinstance(user, User) and current_user.ngo==False):
         ngos=User.query.filter_by(ngo=True).all()
@@ -319,6 +331,8 @@ def Donate():
 @app.route('/Donate/<int:ngo_ID>', methods=['GET', 'POST'])
 @login_required
 def DonateToNGO(ngo_ID):
+    if(current_user.is_authenticated and current_user.id==1):
+        return redirect(url_for('admin'))
     user = current_user
     if(isinstance(user, User) and current_user.ngo==False):
         ngo=User.query.filter_by(id=ngo_ID).first()
@@ -349,6 +363,8 @@ def location():
 @app.route("/menu/<int:restaurant_id>")
 @login_required
 def menu(restaurant_id):
+    if(current_user.is_authenticated and current_user.id==1):
+        return redirect(url_for('admin'))
     if(isinstance(current_user,Restaurant)):
         return redirect(url_for('home'))
     elif current_user.latitude is None or current_user.longitude is None:
@@ -367,6 +383,8 @@ def menu(restaurant_id):
 @app.route("/addToCart/<int:restaurant_id>/<int:user_id>/<int:dish_id>", methods=['POST', 'GET'])
 @login_required
 def addToCart(restaurant_id, user_id, dish_id):
+    if(current_user.is_authenticated and current_user.id==1):
+        return redirect(url_for('admin'))
     if isinstance(current_user, Restaurant):
         flash('A restaurant is not allowed to order!', 'warning')
         return redirect(url_for('home'))
@@ -405,6 +423,8 @@ def addToCart(restaurant_id, user_id, dish_id):
 @app.route("/goToCart", methods=['GET', 'POST'])
 @login_required
 def goToCart():
+    if(current_user.is_authenticated and current_user.id==1):
+        return redirect(url_for('admin'))
     user_id = current_user.id
     user=current_user
     transaction = Transaction.query.filter_by(userID=user_id, paid=False).first()
@@ -452,6 +472,8 @@ def remove_order(order_id):
 @app.route('/OrderHistory')
 @login_required
 def OrderHistory():
+    if(current_user.is_authenticated and current_user.id==1):
+        return redirect(url_for('admin'))
     user = current_user
     if(isinstance(user, User)):
         transactions=Transaction.query.filter_by(userID=user.id, paid=True).all()
@@ -524,6 +546,8 @@ def calculate_distance(lat1, lon1, lat2, lon2):
 @app.route('/payment/<int:amount>',methods=['GET','POST'])
 @login_required
 def Payment(amount):
+    if(current_user.is_authenticated and current_user.id==1):
+        return redirect(url_for('admin'))
     if amount==0:
         flash('Your cart is empty')
         return redirect(url_for('goToCart'))
@@ -532,6 +556,8 @@ def Payment(amount):
 @app.route('/success',methods=['POST','GET'])
 @login_required
 def Success():
+    if(current_user.is_authenticated and current_user.id==1):
+        return redirect(url_for('admin'))
     user = current_user
     if isinstance(user, User):
         transaction = Transaction.query.filter_by(userID=user.id, paid=False).first()

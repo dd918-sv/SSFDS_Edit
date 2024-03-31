@@ -132,6 +132,16 @@ class TimeForm(FlaskForm):
     end = TimeField('End Time', format='%H:%M', validators=[DataRequired()])
     submit = SubmitField('Submit')
 
-    def validate_time(self, start, end):
-        if start.data>end.data:
+    def validate_timings(self, start, end):
+        start_hour = int(self.start.data.strftime('%H'))
+        end_hour = int(self.end.data.strftime('%H'))
+        print(start_hour, end_hour)
+        if start_hour > end_hour:
             raise ValidationError('Start time must be before end time')
+        elif start_hour == end_hour:
+            start_minute = int(self.start.data.strftime('%M'))
+            end_minute = int(self.end.data.strftime('%M'))
+            print("**")
+            print(start_minute, end_minute)
+            if start_minute >= end_minute:
+                raise ValidationError('Start time must be before end time')
