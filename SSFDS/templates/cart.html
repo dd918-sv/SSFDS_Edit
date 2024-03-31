@@ -2,7 +2,7 @@
 {% block content %}
 <div class="container">
     <h1 class="my-4">My Orders</h1>
-    <div class="card mb-3">
+    <div class="card mb-3">   
         <div class="card-body">
             {% for order in orders %}
             <div class="row" id="order-{{ order.id }}">
@@ -44,8 +44,27 @@
             </div>
             <div class="row">
                 <div class="col-md-12">
+                    <div class="alert alert-info" role="alert">
+                        <strong>Total Amount: </strong> Rs <span id="totalAmount"></span><br>
+                        <strong>Discout offered: </strong><span id="discount">{{discount}}</span>%
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
                     <div class="alert alert-success" role="alert">
-                        <strong>Total Amount:</strong> Rs<span id="totalAmount">{{ total_amount }}</span>
+                        <strong>Amount To Pay: </strong> Rs <span id="discountedAmount"></span><br>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label for="paymentMode">Mode of Payment:</label>
+                        <select class="form-control" id="paymentMode" onchange="updateTotalAmount()">
+                            <option value="cash">Cash on Delivery</option>
+                            <option value="online">Online Payment</option>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -100,6 +119,7 @@
         });
 
         var deliveryCharge = parseFloat(document.getElementById("deliveryCharge").textContent);
+        var discount = parseFloat(document.getElementById("discount").textContent);
         var selfPickupCheckbox = document.getElementById("selfPickupCheckbox");
         
         if (!selfPickupCheckbox.checked) {
@@ -107,6 +127,7 @@
         }
 
         document.getElementById("totalAmount").textContent = total.toFixed(2);
+        document.getElementById("discountedAmount").textContent = Math.ceil(total.toFixed(2)*(100-discount)/100);
     }
 
     function toggleDeliveryCharges() {
@@ -122,13 +143,12 @@
 
     function placeOrder() {
         var review = document.getElementById("review").value;
-        var paymentMethod = "Cash"; 
+        var paymentMethod = document.getElementById("paymentMode").value;
         var selfPickupCheckbox = document.getElementById("selfPickupCheckbox");
         var deliveryCharge = parseFloat(document.getElementById("deliveryCharge").textContent);
-        var totalAmount = parseFloat(document.getElementById("totalAmount").textContent);
-        
+        var discountedAmount = parseFloat(document.getElementById("discountedAmount").textContent);
         if (selfPickupCheckbox.checked) {
-            paymentMethod = "Prepaid";
+            paymentMethod = "online";
             deliveryCharge = 0; 
         }
 
@@ -136,12 +156,16 @@
             url: '/place_order',
             type: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({"payment_method": paymentMethod, "delivery_charge": deliveryCharge, "total_amount": totalAmount,"review": review}),
+            data: JSON.stringify({"payment_method": paymentMethod, "delivery_charge": deliveryCharge, "discounted_amount": discountedAmount,"review":review}),
             success: function(response) {
-                if (response.success) {
+                if (response.success && paymentMethod=="cash") {
                     alert("Order placed successfully!");
                     window.location.href = '/home'; // Redirect to home page
-                } else {
+                } 
+                else if(response.success && paymentMethod=="online"){
+                    window.location.href = '/payment/' + discountedAmount;
+                }
+                else {
                     alert("Failed to place order. Please try again.");
                 }
             },
