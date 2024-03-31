@@ -126,22 +126,15 @@ class DonationForm(FlaskForm):
             raise ValidationError('Minimum amount is 100')
         elif amount.data>100000000:
             raise ValidationError('Maximum amount is 100000000')
-        
+
+def validate_timings(form, field):
+    start_time = form.start.data
+    end_time = form.end.data
+
+    if start_time >= end_time:
+        raise ValidationError('End time should be greater than start time.')
+
 class TimeForm(FlaskForm):
     start = TimeField('Start Time', format='%H:%M', validators=[DataRequired()])
-    end = TimeField('End Time', format='%H:%M', validators=[DataRequired()])
+    end = TimeField('End Time', format='%H:%M', validators=[DataRequired(), validate_timings])
     submit = SubmitField('Submit')
-
-    def validate_timings(self, start, end):
-        start_hour = int(self.start.data.strftime('%H'))
-        end_hour = int(self.end.data.strftime('%H'))
-        print(start_hour, end_hour)
-        if start_hour > end_hour:
-            raise ValidationError('Start time must be before end time')
-        elif start_hour == end_hour:
-            start_minute = int(self.start.data.strftime('%M'))
-            end_minute = int(self.end.data.strftime('%M'))
-            print("**")
-            print(start_minute, end_minute)
-            if start_minute >= end_minute:
-                raise ValidationError('Start time must be before end time')
