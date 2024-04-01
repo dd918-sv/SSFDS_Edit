@@ -14,11 +14,6 @@
                 <h2>
                     <a class="article-title" href="#" onclick="enterMenu('{{ restaurant.id }}')">
                         {{ restaurant.username }}
-                        {% if restaurant.non_vegetarian %}
-                            (Non-Veg)
-                        {% else %}
-                            (Veg)
-                        {% endif %}
                     </a>
                 </h2>
                 <p class="article-content">{{ restaurant.address }}</p>

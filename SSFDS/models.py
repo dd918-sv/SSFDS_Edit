@@ -25,7 +25,6 @@ class Restaurant(db.Model, UserMixin):
     content = db.Column(db.Text, nullable=True)
     dishes = db.relationship('Dish', backref='restaurant', lazy=True)
     transaction = db.relationship('Transaction', backref='restaurant', lazy=True)
-    non_vegetarian = db.Column(db.Boolean)
 
     def __repr__(self):
         return f"Restaurant('{self.username}', '{self.email}', '{self.image}', '{self.latitude}', '{self.longitude}')"

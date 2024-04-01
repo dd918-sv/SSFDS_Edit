@@ -119,7 +119,7 @@ def restaurantregister():
     form = RestaurantRegistrationForm()
     if form.validate_on_submit():
         hashedPassword=bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        restaurant = Restaurant(id= identity(), username=form.username.data, email=form.email.data, password=hashedPassword, address=form.address.data,non_vegetarian=form.non_vegetarian.data)
+        restaurant = Restaurant(id= identity(), username=form.username.data, email=form.email.data, password=hashedPassword, address=form.address.data)
         db.session.add(restaurant)
         db.session.commit()
         flash('Your account has been created! You can now login', 'success')
@@ -314,6 +314,8 @@ def DonationsReceived():
 @app.route('/DonationsGiven')
 @login_required
 def DonationsGiven():
+    if(current_user.is_authenticated and current_user.id==1):
+        return redirect(url_for('admin'))
     user = current_user
     if(isinstance(user, User) and current_user.ngo==False):
         donations=Donation.query.filter_by(userID=current_user.id).all()
@@ -388,6 +390,8 @@ def menu(restaurant_id):
 @app.route("/addToCart/<int:restaurant_id>/<int:user_id>/<int:dish_id>", methods=['POST', 'GET'])
 @login_required
 def addToCart(restaurant_id, user_id, dish_id):
+    if(current_user.is_authenticated and current_user.id==1):
+        return redirect(url_for('admin'))
     if isinstance(current_user, Restaurant):
         flash('A restaurant is not allowed to order!', 'warning')
         return redirect(url_for('home'))

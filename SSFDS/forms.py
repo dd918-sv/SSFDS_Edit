@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from flask_wtf.recaptcha import RecaptchaField
 from flask_wtf.file import FileField, FileAllowed
 from flask_login import current_user
-from wtforms import StringField, PasswordField, SubmitField, BooleanField,IntegerField, FloatField,TimeField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField,IntegerField, FloatField, TimeField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from SSFDS.models import User, Restaurant
 from SSFDS import bcrypt
@@ -14,7 +14,6 @@ class RestaurantRegistrationForm(FlaskForm):
     email = StringField('Email',
                         validators=[DataRequired(), Email()])
     address = StringField('Address', validators=[DataRequired(), Length(min=10, max=200)])
-    non_vegetarian = BooleanField('Non-Vegetarian') 
     password = PasswordField('Password', validators=[DataRequired()])
     confirm_password = PasswordField('Confirm Password',
                                      validators=[DataRequired(), EqualTo('password')])
