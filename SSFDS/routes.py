@@ -173,6 +173,10 @@ def save_picture(formPicture, path):
     outputSize=(125,125)
     resizedImage = Image.open(formPicture)
     resizedImage.thumbnail(outputSize)
+    if current_user.image != 'default.jpg' and current_user.image is not None:
+        existingPicturePath = os.path.join(app.root_path, path, current_user.image)
+        if os.path.exists(existingPicturePath):
+            os.remove(existingPicturePath)
     resizedImage.save(picturePath)
     return pictureName
 
