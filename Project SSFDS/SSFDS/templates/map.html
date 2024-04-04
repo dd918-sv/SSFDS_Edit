@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Location Picker</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.css') }}" />
+  <script src="{{ url_for('static', filename='js/leaflet.js') }}"></script>
+  <style>
+    /* Background color */
+    body {
+      background-color: black;
+      color: violet; /* Set text color for body elements */
+      display: grid;
+      grid-template-columns: 1fr;  /* Map occupies full width */
+      grid-template-rows: 1fr auto;   /* Map takes first row, rest for button */
+      min-height: 100vh;            /* Set minimum viewport height */
+      margin: 0;
+    }
+
+    /* Button styles */
+    button {
+      background-color: grey;
+      color: violet;
+      font-size: 25px; /* Increase button text size */
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    #map {
+      height: 100%;                 /* Map fills entire first row */
+    }
+
+    /* Increase the size of Leaflet pop-ups (Optional) */
+    .leaflet-popup-content-wrapper {
+      width: 1600px;  /* Adjust width and height as desired */
+      height: 900px;  /* Adjust width and height as desired */
+    }
+    .leaflet-popup-content {
+      width: 100%;
+      height: 100%;
+    }
+
+    .centered-button {
+      margin: 0 auto;
+      display: block;
+    }
+
+    .centered-button {
+      position: center;
+      bottom: 10px;
+      right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="map" style="height: 100%"></div>
+  <p id="coords"></p>
+  <button onclick="chooseLocation()" class="centered-button">
+    Choose this location
+  </button>
+
+  <form id="locationForm" action="/location" method="POST">
+    <input type="hidden" id="latInput" name="lat" />
+    <input type="hidden" id="lngInput" name="lng" />
+  </form>
+
+  <script>
+      var map = L.map("map").setView([22.315, 87.3066], 15);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+
+      var marker;
+
+      function onMapClick(e) {
+          if (marker) {
+              map.removeLayer(marker);
+          }
+          marker = L.marker(e.latlng).addTo(map);
+          var lat = e.latlng.lat.toFixed(4);
+          var lng = e.latlng.lng.toFixed(4);
+          document.getElementById("latInput").value = lat;
+          document.getElementById("lngInput").value = lng;
+      }
+
+      map.on("click", onMapClick);
+
+      function chooseLocation() {
+          var lat = marker.getLatLng().lat.toFixed(4);
+          var lng = marker.getLatLng().lng.toFixed(4);
+          document.getElementById("locationForm").submit();
+      }
+  </script>
+</body>
+</html>

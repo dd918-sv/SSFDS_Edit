@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h1>About Page</h1>
+    <h4>This website is brought to you by</h4>
+    <article class="media content-section">
+        <img class="rounded-circle account-img" src="{{ url_for('static', filename='profile_pics/' + 'default.png') }}">
+        <div class="media-body">
+            <h2><a class="account-heading">Shivam Choudhury</a></h2>
+            <p class="text-secondary">22CS10072</p>
+          </div>
+        </article>
+        <article class="media content-section">
+
+        <img class="rounded-circle account-img" src="{{ url_for('static', filename='profile_pics/' + 'default.png') }}">
+        <div class="media-body">
+            <h2><a class="account-heading">Devansha Dhanker</a></h2>
+            <p class="text-secondary">22CS10021</p>
+          </div>
+        </article>
+
+          <article class="media content-section">
+
+        <img class="rounded-circle account-img" src="{{ url_for('static', filename='profile_pics/' + 'default.png') }}">
+        <div class="media-body">
+            <h2><a class="account-heading">More Aayush Babasaheb</a></h2>
+            <p class="text-secondary">22CS30063</p>
+          </div>
+        </article>
+
+{% endblock content %}

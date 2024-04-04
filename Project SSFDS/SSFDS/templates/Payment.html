@@ -1,0 +1,68 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<div class="container">
+    <h1 class="my-4">Payment</h1>
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">Total Price: Rs. {{price}}</h5>
+            <form id="paymentForm" action="/success" method="POST">
+                <div class="form-group">
+                    <label for="card-number">Card Number:</label>
+                    <input type="text" id="card-number" name="card-number" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="expiry-date">Expiry Date (MMYYYY):</label>
+                    <input type="text" id="expiry-date" name="expiry-date" class="form-control" required maxlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="cvv">CVV:</label>
+                    <input type="text" id="cvv" name="cvv" class="form-control" required maxlength="3">
+                </div>
+                <div class="form-group">
+                    <label for="name">Account Holder Name:</label>
+                    <input type="text" id="name" name="name" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary" id="payButton">Submit Payment</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById("paymentForm").addEventListener("submit", function(event) {
+        var cardNumber = document.getElementById("card-number").value;
+        var cvv = document.getElementById("cvv").value;
+        var expiryDate = document.getElementById("expiry-date").value;
+        
+        if (cardNumber.length !== 12) {
+            alert("Please enter a 12-digit card number.");
+            event.preventDefault();
+            return;
+        }
+        
+        if (cvv.length !== 3) {
+            alert("Please enter a 3-digit CVV.");
+            event.preventDefault();
+            return;
+        }
+        
+        if (expiryDate.length !== 6) {
+            alert("Please enter a 6-digit expiry date.");
+            event.preventDefault();
+            return;
+        }
+        
+        if (!confirm("Do you want to pay money?")) {
+            event.preventDefault(); // Prevent submission only if user cancels
+            return;
+        } 
+        else
+        {
+            window.location.href = "/success/";
+        }
+        // Form submission continues if confirmed
+    });
+</script>
+
+{% endblock %}
