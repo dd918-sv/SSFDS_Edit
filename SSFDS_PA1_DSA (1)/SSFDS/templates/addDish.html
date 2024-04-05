@@ -28,6 +28,17 @@
                     {%else%}
                         {{form.price(class="form-control form-control-lg")}}
                     {%endif%}
+                    {{form.quantity.label(class="form-control-label")}}
+                    {%if form.quantity.errors%}
+                        {{form.quantity(class="form-control form-control-lg is-invalid")}}
+                        <div class="invalid-feedback">
+                            {%for error in form.quantity.errors%}
+                                <span>{{error}}</span>
+                            {%endfor%}
+                        </div>
+                    {%else%}
+                        {{form.quantity(class="form-control form-control-lg")}}
+                    {%endif%}
                     {{form.description.label(class="form-control-label")}}
                     {%if form.description.errors%}
                         {{form.description(class="form-control form-control-lg is-invalid")}}

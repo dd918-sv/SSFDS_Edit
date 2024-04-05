@@ -1,5 +1,12 @@
 {% extends 'layout.html' %}
 {% block content %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
 <div class="container">
     <h1 class="my-4">My Orders</h1>
     <div class="card mb-3">   
@@ -17,6 +24,7 @@
                         <div class="form-group">
                             <label for="quantity-{{ order.id }}">Quantity:</label>
                             <input type="number" id="quantity-{{ order.id }}" name="quantity" class="form-control quantity-input" value="{{ order.quantity }}" min="1" onchange="updatePrice('{{ order.id }}','{{order.dish.price}}')">
+                            <p>Quantity available: {{order.dish.quantityAvailable}} unit(s)</p>  <!-- edit -->
                         </div>
                         <button type="button" class="btn btn-danger" onclick="removeOrder('{{ order.id }}')">Remove</button>
                     </form>
@@ -92,10 +100,6 @@
         updateQuantity(orderId, quantity);
         updateTotalAmount();
     }
-    function get_orders()
-    {
-    
-    }
     function updateQuantity(orderId, quantity) {
         $.ajax({
             url: '/update_quantity',
@@ -161,15 +165,14 @@
             contentType: 'application/json',
             data: JSON.stringify({"payment_method": paymentMethod, "delivery_charge": deliveryCharge, "discounted_amount": discountedAmount,"review":review}),
             success: function(response) {
-                if (response.success && paymentMethod=="cash") {
-                    alert("Order placed successfully!");
+                if (response.success && response.check && paymentMethod=="cash") {
                     window.location.href = '/home'; // Redirect to home page
                 } 
-                else if(response.success && paymentMethod=="online"){
+                else if(response.success && response.check && paymentMethod=="online"){
                     window.location.href = '/payment/' + discountedAmount;
                 }
-                else {
-                    alert("Failed to place order. Please try again.");
+                else if(response.check==false){
+                    alert("Not enough quantity in stock for some itmes!. Please enter lesser quantity.");
                 }
             },
             error: function(xhr, status, error) {

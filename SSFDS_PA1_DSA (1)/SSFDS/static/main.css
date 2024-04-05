@@ -31,7 +31,7 @@ body {
   }
   
   h1, h2, h3, h4, h5, h6 {
-    color: #e3e0e0;
+    color: black;
   }
 
   .article-title{
@@ -44,6 +44,7 @@ body {
     position:relative;
     padding:10px 20px;
     background: white;
+    color: black;
     border-radius: 20%;
     transition:all 1s;
     &:after,&:before{

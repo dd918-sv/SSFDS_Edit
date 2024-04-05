@@ -330,7 +330,7 @@ def addDish():
         return redirect(url_for('account'))
     form=AddDishForm()
     if form.validate_on_submit():
-        dish=Dish(name=form.name.data,price=form.price.data,description=form.description.data,restaurant=current_user)
+        dish=Dish(name=form.name.data,price=form.price.data,quantityAvailable=form.quantity.data,description=form.description.data,restaurant=current_user)
         if form.picture.data:
             pictureFile = save_picture(form.picture.data, 'static/dish_pics')
             dish.image = pictureFile
@@ -632,17 +632,25 @@ def place_order():
     transaction = Transaction.query.filter_by(userID=user_id, paid=False).first()
     if not transaction:
         return jsonify({'success': False, 'message': 'No active transaction found.'}), 404
+    check=True
+    for order in transaction.orders:
+        if order.quantity>order.dish.quantityAvailable:
+            check=False
+    if check==False:
+        return jsonify({'success': True,'message':"not enough quantity in stock",'check':check})
     transaction.paymentMethod = payment_method
     transaction.amount = discounted_amount
     transaction.deliveryCharge=delivery_charge
     transaction.deliveryLatitude=current_user.latitude
     transaction.deliveryLongitude=current_user.longitude
     transaction.review = review
+    for order in transaction.orders:
+        order.dish.quantityAvailable-=order.quantity
     if(payment_method=='cash'):
         transaction.paid = True
     transaction.date = datetime.now()
     db.session.commit()
-    return jsonify({'success': True, 'total_price': discounted_amount}), 200
+    return jsonify({'success': True, 'total_price': discounted_amount,'check':check}), 200
  
 
 

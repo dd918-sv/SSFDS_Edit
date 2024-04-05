@@ -109,6 +109,7 @@ class Dish(db.Model):
     image = db.Column(db.String(20), nullable=False, default='default.jpg')
     restaurantID = db.Column(db.Integer, db.ForeignKey('restaurant.id'), nullable=False)
     order = db.relationship('Order', backref='dish', lazy=True)
+    quantityAvailable=db.Column(db.Integer, nullable=False, default=0)#edited
 
     def __repr__(self):
         return f"Dish('{self.name}', '{self.price}', '{self.description}', '{self.image}')"

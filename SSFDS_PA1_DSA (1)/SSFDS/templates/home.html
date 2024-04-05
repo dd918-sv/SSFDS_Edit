@@ -1,18 +1,18 @@
 {% extends "layout.html" %}
 {% block content %}
 <div class="container">
-    <h1 class="my-4">Nearby Restaurants</h1>
+    <h1 class="my-4" style="color: white !important;">Nearby Restaurants</h1>
     {% for restaurant in restaurants %}
     {% set distance = None %}
     {% if current_user.is_authenticated %}
         {% set distance = calculate_distance(restaurant.latitude, restaurant.longitude, current_user.latitude, current_user.longitude) %}
     {% endif %}
     {% if distance == None or distance < 10 %}
-        <article class="media content-section card-format">
+        <article class="media content-section card-format" onclick="enterMenu('{{ restaurant.id }}')">
             <img class="rounded-circle account-img" src="{{ url_for('static', filename='profile_pics/' + restaurant.image) }}">
-            <div class="media-body">
+            <div class="media-body" >
                 <h2>
-                    <a class="article-title" href="{{url_for('menu',restaurant_id=restaurant.id)}}" onclick="enterMenu('{{ restaurant.id }}')">
+                    <a class="article-title" href="{{url_for('menu',restaurant_id=restaurant.id)}}">
                         {{ restaurant.username }}
                     </a>
                 </h2>
@@ -23,7 +23,7 @@
 {% endfor %}
 
     
-    <h2 class="my-4">Reviews</h2>
+    <h2 class="my-4" style="color: white !important;">Reviews</h2>
     <div class="review-container">
         {% for t in transactions %}
             {% if t.review %}
