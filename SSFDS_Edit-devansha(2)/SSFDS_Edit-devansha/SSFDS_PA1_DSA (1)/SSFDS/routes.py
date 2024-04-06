@@ -148,6 +148,11 @@ def changetimewindow():
                 db.session.commit()
             flash('Time window has been changed','success')
             return redirect(url_for('admin'))
+        elif request.method == 'GET':
+            time=Time.query.first()
+            if(time!=None):
+                form.start.data=time.start
+                form.end.data=time.end
         return render_template('changetimewindow.html', title='Change Time Window', form=form)
 
 

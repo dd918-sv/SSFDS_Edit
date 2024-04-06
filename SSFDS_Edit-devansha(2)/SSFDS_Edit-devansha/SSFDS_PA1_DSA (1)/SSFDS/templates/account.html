@@ -69,12 +69,12 @@
                         {% endfor %}
                     {% endif %}
                 </div>
-                <div class ="form-group">
-                </div>
                 <div class="form-group">
                     {{ form.recaptcha.label }} {{ form.recaptcha() }}
                     {% if form.recaptcha.errors %}
-                        <small class="text-danger">{{ form.recaptcha.errors[0] }}</small>
+                        {% for error in form.recaptcha.errors %}
+                        <small class="text-danger">{{ error }}</small>
+                        {% endfor %}
                     {% endif %}
                 </div>
             </fieldset>
@@ -102,7 +102,7 @@
             </div>
         </div>
         {%endfor%}
-        <button><a href="{{url_for('addDish')}}" style="text-decoration: none;color: black;" >Add a dish</a></button>
+        <button ><a href="{{url_for('addDish')}}" style="text-decoration: none;color: black;" >Add a dish</a></button>
     {%endif%}
     <script>
         function deleteDish(dishId, restaurantId) {
