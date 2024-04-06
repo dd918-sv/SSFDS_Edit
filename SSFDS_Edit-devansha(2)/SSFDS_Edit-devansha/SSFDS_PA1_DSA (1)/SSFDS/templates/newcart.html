@@ -1,0 +1,170 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<div class="content-section">
+    <form method="POST" action="">
+        <!-- {{ form.hidden_tag() }} -->
+        <fieldset class="form-group">
+            {%for order in orders%}
+            <div class="form-group" id="remove-form-{{order.id}}">
+                <div class="row" id="order-{{ order.id }}">
+                    <div class="col-md-4">
+                        <img class="rounded-circle account-img" src="{{ url_for('static', filename='dish_pics/' + order.dish.image) }}">
+                        <h5 class="card-title">{{ order.dish.name }}</h5>
+                        <p class="card-text text-muted">Description: {{ order.dish.description }}</p>
+                        {{form.quantity.label(class="form-control-label")}}
+                        {%if form.quantity.errors %}
+                            {{ form.quantity(class="form-control form-control-lg is-invalid", id="quantity-{{order.id}}") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.quantity.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.quantity(class="form-control form-control-lg", id="quantity-{{order.id}}", onchange="updatePrice('{{order.id}}','{{order.dish.price}}')") }}
+                        {% endif %}
+                        </div>
+                        
+                    <div class="col-md-4">
+                        <button type="button" class="btn btn-danger" onclick="removeOrder('{{order.id}}')">Delete</button>
+                    </div>
+                    <div class="col-md-4">
+                        <p id="price-{{ order.id }}" class="card-text"><strong>Price:</strong> Rs{{ order.dish.price * order.quantity }}</p>
+
+                    </div>
+                </div>
+            </div>
+            <br><br>
+            {%endfor%}
+        </fieldset>
+        <div class="form-group">
+            {{ form.submit(class="btn btn-outline-info", value="Place Order") }}
+        </div>
+    </form>
+</div>
+
+
+<script>
+     function removeOrder(orderId) {
+        if (confirm("Are you sure you want to remove this order?")) {
+            // Send a POST request to the Flask backend
+            fetch(`/remove_order/${orderId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Include any additional headers if required
+                },
+                // Optionally, you can include a request body if needed
+                // body: JSON.stringify({}),
+            })
+            .then(response => {
+                // Handle the response as needed
+                if (response.ok) {
+                    // Reload the page or update the UI as necessary
+                    location.reload(); // For example, reload the page
+                } else {
+                    // Handle errors if required
+                    console.error('Failed to remove order');
+                }
+            })
+            .catch(error => {
+                // Handle network errors or other exceptions
+                console.error('Error:', error);
+            });
+        }
+    }
+    
+    function updatePrice(orderId,dishPrice) {
+        var quantityInput = document.getElementById("quantity-" + orderId);
+        var quantity = parseInt(quantityInput.value);
+        var totalPrice = dishPrice * quantity;
+        document.getElementById("price-"+orderId).innerHTML = "<strong>Price:</strong> Rs" + totalPrice.toFixed(2);  
+    }
+
+
+    // function updateQuantity(orderId, quantity) {
+    //     $.ajax({
+    //         url: '/update_quantity',
+    //         type: 'POST',
+    //         contentType: 'application/json',
+    //         data: JSON.stringify({ "order_id": orderId, "quantity": quantity }),
+    //         success: function(response) {
+    //             if (!response.success) {
+    //                 alert("Failed to update quantity. Please try again.");
+    //             }
+    //         },
+    //         error: function(xhr, status, error) {
+    //             console.error(xhr.responseText);
+    //         }
+    //     });
+    // }
+
+    // function updateTotalAmount() {
+    //     var total = 0;
+    //     var priceElements = document.querySelectorAll('[id^="price-"]');
+    //     priceElements.forEach(function(element) {
+    //         var price = parseFloat(element.textContent.split('Rs')[1]);
+    //         total += price;
+    //     });
+
+    //     var deliveryCharge = parseFloat(document.getElementById("deliveryCharge").textContent);
+    //     var discount = parseFloat(document.getElementById("discount").textContent);
+    //     var selfPickupCheckbox = document.getElementById("selfPickupCheckbox");
+        
+    //     if (!selfPickupCheckbox.checked) {
+    //         total += deliveryCharge;
+    //     }
+
+    //     document.getElementById("totalAmount").textContent = total.toFixed(2);
+    //     document.getElementById("discountedAmount").textContent = Math.ceil(total.toFixed(2)*(100-discount)/100);
+    // }
+
+    // function toggleDeliveryCharges() {
+    //     var selfPickupCheckbox = document.getElementById("selfPickupCheckbox");
+    //     var deliveryChargesDiv = document.getElementById("deliveryChargesDiv");
+    //     if (selfPickupCheckbox.checked) {
+    //         deliveryChargesDiv.style.display = "none";
+    //     } else {
+    //         deliveryChargesDiv.style.display = "block";
+    //     }
+    //     updateTotalAmount();
+    // }
+
+    // function placeOrder() {
+    //     var review = document.getElementById("review").value;
+    //     var paymentMethod = document.getElementById("paymentMode").value;
+    //     var selfPickupCheckbox = document.getElementById("selfPickupCheckbox");
+    //     var deliveryCharge = parseFloat(document.getElementById("deliveryCharge").textContent);
+    //     var discountedAmount = parseFloat(document.getElementById("discountedAmount").textContent);
+    //     if (selfPickupCheckbox.checked) {
+    //         paymentMethod = "online";
+    //         deliveryCharge = 0; 
+    //     }
+
+    //     $.ajax({
+    //         url: '/place_order',
+    //         type: 'POST',
+    //         contentType: 'application/json',
+    //         data: JSON.stringify({"payment_method": paymentMethod, "delivery_charge": deliveryCharge, "discounted_amount": discountedAmount,"review":review}),
+    //         success: function(response) {
+    //             if (response.success && paymentMethod=="cash") {
+    //                 alert("Order placed successfully!");
+    //                 window.location.href = '/home'; // Redirect to home page
+    //             } 
+    //             else if(response.success && paymentMethod=="online"){
+    //                 window.location.href = '/payment/' + discountedAmount;
+    //             }
+    //             else {
+    //                 alert("Failed to place order. Please try again.");
+    //             }
+    //         },
+    //         error: function(xhr, status, error) {
+    //             console.error(xhr.responseText);
+    //         }
+    //     });
+    // }
+    // updateTotalAmount();
+
+</script>
+
+{% endblock %}
