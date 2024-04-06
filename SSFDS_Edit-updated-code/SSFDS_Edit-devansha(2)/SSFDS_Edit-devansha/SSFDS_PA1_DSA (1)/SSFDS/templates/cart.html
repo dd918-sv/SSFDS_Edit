@@ -1,0 +1,200 @@
+{% extends 'layout.html' %}
+{% block content %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+<div class="container">
+    <h1 class="my-4">My Orders</h1>
+    <div class="card mb-3">   
+        <div class="card-body">
+            {% for order in orders %}
+            <div class="row" id="order-{{ order.id }}">
+                <div class="col-md-4">
+                    <img class="rounded-circle account-img" src="{{ url_for('static', filename='dish_pics/' + order.dish.image) }}">
+
+                    <h5 class="card-title">{{ order.dish.name }}</h5>
+                    <p class="card-text text-muted">Description: {{ order.dish.description }}</p>
+                </div>
+                <div class="col-md-4">
+                    <form id="remove-form-{{ order.id }}" method="POST" action="{{ url_for('remove_order', order_id=order.id) }}">
+                        <div class="form-group">
+                            <label for="quantity-{{ order.id }}">Quantity:</label>
+                            <input type="number" id="quantity-{{ order.id }}" name="quantity" class="form-control quantity-input" value="{{ order.quantity }}" min="1" onchange="updatePrice('{{ order.id }}','{{order.dish.price}}')">
+                            <p>Quantity available: {{order.dish.quantityAvailable}} unit(s)</p>  <!-- edit -->
+                        </div>
+                        <button type="button" class="btn btn-danger" onclick="removeOrder('{{ order.id }}')">Remove</button>
+                    </form>
+                </div>
+                <div class="col-md-4">
+                    <p id="price-{{ order.id }}" class="card-text"><strong>Price:</strong> Rs{{ order.dish.price * order.quantity }}</p>
+                </div>
+            </div>
+            <br><br>
+            {% endfor %}
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="selfPickupCheckbox" onclick="toggleDeliveryCharges()">
+                        <label class="form-check-label" for="selfPickupCheckbox">Self Pickup</label>
+                    </div>
+                </div>
+            </div>
+            <div class="row" id="deliveryChargesDiv" style="display:block;">
+                <div class="col-md-12">
+                    <div class="alert alert-info" role="alert">
+                        <strong>Delivery Charge:</strong> Rs<span id="deliveryCharge">{{ delivery_charge }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="alert alert-info" role="alert">
+                        <strong>Total Amount: </strong> Rs <span id="totalAmount"></span><br>
+                        <strong>Discout offered: </strong><span id="discount">{{discount}}</span>%
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="alert alert-success" role="alert">
+                        <strong>Amount To Pay: </strong> Rs <span id="discountedAmount"></span><br>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label for="paymentMode">Mode of Payment:</label>
+                        <select class="form-control" id="paymentMode" onchange="updateTotalAmount()">
+                            <option value="cash">Cash on Delivery</option>
+                            <option value="online">Online Payment</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-primary" onclick="placeOrder()">Place Order</button>
+        </div>
+        <div class="form-group">
+            <label for="review">Overall Review (Optional):</label>
+            <textarea class="form-control" id="review" ></textarea>
+        </div>
+    </div>
+</div>
+
+<script>
+    function removeOrder(orderId) {
+        if (confirm("Are you sure you want to remove this order?")) {
+            document.getElementById("remove-form-" + orderId).submit();
+        }
+    }
+
+    function updatePrice(orderId, price) {
+        var quantity = parseInt(document.getElementById("quantity-" + orderId).value);
+        var pricePerUnit = price;  // Assuming all dishes have the same price
+        var totalPrice = quantity * pricePerUnit;
+        document.getElementById("price-" + orderId).innerHTML = "<strong>Price:</strong> Rs" + totalPrice.toFixed(2);
+        updateQuantity(orderId, quantity);
+        updateTotalAmount();
+    }
+    function updateQuantity(orderId, quantity) {
+        $.ajax({
+            url: '/update_quantity',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ "order_id": orderId, "quantity": quantity }),
+            success: function(response) {
+                if (!response.success) {
+                    alert("Failed to update quantity. Please try again.");
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error(xhr.responseText);
+            }
+        });
+    }
+
+    function updateTotalAmount() {
+        var total = 0;
+        var priceElements = document.querySelectorAll('[id^="price-"]');
+        priceElements.forEach(function(element) {
+            var price = parseFloat(element.textContent.split('Rs')[1]);
+            total += price;
+        });
+
+        var deliveryCharge = parseFloat(document.getElementById("deliveryCharge").textContent);
+        var discount = parseFloat(document.getElementById("discount").textContent);
+        var selfPickupCheckbox = document.getElementById("selfPickupCheckbox");
+        
+        if (!selfPickupCheckbox.checked) {
+            total += deliveryCharge;
+        }
+
+        document.getElementById("totalAmount").textContent = total.toFixed(2);
+        document.getElementById("discountedAmount").textContent = Math.ceil(total.toFixed(2)*(100-discount)/100);
+        updatePaymentOptions();
+    }
+
+    function toggleDeliveryCharges() {
+        var selfPickupCheckbox = document.getElementById("selfPickupCheckbox");
+        var deliveryChargesDiv = document.getElementById("deliveryChargesDiv");
+        if (selfPickupCheckbox.checked) {
+            deliveryChargesDiv.style.display = "none";
+        } else {
+            deliveryChargesDiv.style.display = "block";
+        }
+        updateTotalAmount();
+    }
+
+    function updatePaymentOptions() {
+        var selfPickupCheckbox = document.getElementById("selfPickupCheckbox");
+        var paymentMode = document.getElementById("paymentMode");
+        
+        if (selfPickupCheckbox.checked) {
+            paymentMode.value = "online";
+            document.getElementById("paymentMode").disabled = true;
+        } else {
+            document.getElementById("paymentMode").disabled = false;
+        }
+    }
+
+    function placeOrder() {
+        var review = document.getElementById("review").value;
+        var paymentMethod = document.getElementById("paymentMode").value;
+        var selfPickupCheckbox = document.getElementById("selfPickupCheckbox");
+        var deliveryCharge = parseFloat(document.getElementById("deliveryCharge").textContent);
+        var discountedAmount = parseFloat(document.getElementById("discountedAmount").textContent);
+        if (selfPickupCheckbox.checked) {
+            paymentMethod = "online";
+            deliveryCharge = 0; 
+        }
+
+        $.ajax({
+            url: '/place_order',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({"payment_method": paymentMethod, "delivery_charge": deliveryCharge, "discounted_amount": discountedAmount,"review":review}),
+            success: function(response) {
+                if (response.success && response.check && paymentMethod=="cash") {
+                    window.location.href = '/home'; // Redirect to home page
+                } 
+                else if(response.success && response.check && paymentMethod=="online"){
+                    window.location.href = '/payment/' + discountedAmount;
+                }
+                else if(response.check==false){
+                    alert("Not enough quantity in stock for some itmes!. Please enter lesser quantity.");
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error(xhr.responseText);
+            }
+        });
+    }
+    updateTotalAmount();
+
+</script>
+
+{% endblock %}

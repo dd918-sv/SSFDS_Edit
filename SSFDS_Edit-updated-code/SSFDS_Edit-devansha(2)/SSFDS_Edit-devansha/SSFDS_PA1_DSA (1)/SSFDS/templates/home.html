@@ -1,0 +1,79 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container">
+    <h1 class="my-4 main-headings" style="color: white !important;">Nearby Restaurants</h1>
+    {% for restaurant in restaurants %}
+    {% set distance = None %}
+    {% if current_user.is_authenticated %}
+        {% if restaurant.latitude!= None and restaurant.longitude!= None %}
+            {% set distance = calculate_distance(restaurant.latitude, restaurant.longitude, current_user.latitude, current_user.longitude) %}
+        {% endif %}
+    {% endif %}
+    {% if distance == None or distance < 10 %}
+        <article class="media content-section card-format" onclick="enterMenu('{{ restaurant.id }}')">
+            <img class="rounded-circle account-img" src="{{ url_for('static', filename='profile_pics/' + restaurant.image) }}">
+            <div class="media-body" >
+                <h2>
+                    <a class="article-title" href="{{url_for('menu',restaurant_id=restaurant.id)}}">
+                        {{ restaurant.username }}
+                    </a>
+                </h2>
+                <p class="article-content">{{ restaurant.address }}</p>
+            </div>
+        </article>
+    {% endif %}
+{% endfor %}
+
+    
+    <h2 class="my-4" style="color: white !important;">Reviews</h2>
+    <div class="review-container">
+        {% for t in transactions %}
+            {% if t.review %}
+                <div class="review">
+                    <article class="media content-section card-format">
+                        <img class="rounded-circle account-img" src="{{ url_for('static', filename='profile_pics/' + t.user.image) }}">
+                        <div class="media-body">
+                            <h2>{{t.user.username}}</h2>
+                            <p class="text-secondary"> ordered from {{ t.restaurant.username }} on {{t.date.strftime('%B %d, %Y')}}</p>
+                            <p class="text-secondary">{{ t.review }}</p>
+                        </div>
+                    </article>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    var reviewIndex = 0;
+    var reviews = document.querySelectorAll('.review');
+
+    function enterMenu(restaurant_id) {
+        window.location.href = "/menu/" + restaurant_id;
+    }
+
+    function toggleReview() {
+        reviews[reviewIndex].style.display = 'none';
+        reviewIndex = (reviewIndex + 1) % reviews.length;
+        reviews[reviewIndex].style.display = 'block';
+    }
+    setInterval(toggleReview, 5000);
+    toggleReview(); // Call toggleReview immediately to show first review
+    
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Radius of the Earth in kilometers
+        const dLat = (lat2 - lat1) * Math.PI / 180;  // Convert latitude difference to radians
+        const dLon = (lon2 - lon1) * Math.PI / 180;  // Convert longitude difference to radians
+        
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const distance = R * c; // Distance in kilometers
+        
+        return distance;
+    }
+
+</script>
+{% endblock %}
