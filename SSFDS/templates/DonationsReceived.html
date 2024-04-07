@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block content %}
+    {% for donation in donations %}
+        <article class="media content-section card-format">
+          <img class="rounded-circle account-img" src="{{ url_for('static', filename='profile_pics/' + donation.normal_user.image) }}">
+          <div class="media-body">
+            <h2>{{ donation.normal_user.username }}</h2>
+            <p class="text-secondary">₹{{ donation.amount }}</p>
+            <p class="text-secondary">{{ donation.date.strftime('%H:%M %d-%m-%Y') }}</p>
+          </div>
+        </article>
+    {% endfor %}
+{% endblock content %}

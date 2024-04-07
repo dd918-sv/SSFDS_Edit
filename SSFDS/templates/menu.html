@@ -1,0 +1,45 @@
+{%extends 'layout.html'%}
+{%block content%}
+<h1 class="main-headings" style="margin: auto;">Welcome to {{restaurant.username}}</h1>
+        {%for dish in dishes%}
+        <article class="media content-section">
+            <div class="media-body">
+                <img class="rounded-circle account-img" src="{{ url_for('static', filename='dish_pics/' + dish.image) }}">
+
+                <div class="article-metadata">
+                    <h2>{{ dish.name }}</h2>
+                    <p class="article-content"><s style="color: red;">Original price: Rs. {{ dish.price }}</s></p>
+                    <p class="article-content" style="color: green;">Discounted price: Rs. {{ dish.price*(100-discount)/100 }}</p>
+                </div>
+                <p class="article-content">{{ dish.description }}</p>
+                <button class="btn btn-outline-info" onclick="addToCart('{{restaurant.id}}','{{current_user.id}}','{{dish.id}}',this)">Add to Cart</button>
+            </div>
+        </article>
+    {%endfor%}
+    <script>
+        function addToCart(restaurant_id, user_id, dish_id,button) {
+        fetch(`/addToCart/${restaurant_id}/${user_id}/${dish_id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                button.textContent = data.message;
+                // const flashMessage = document.createElement('div');
+                // flashMessage.className = 'alert alert-success';
+                // flashMessage.textContent = data.message;
+                // document.body.prepend(flashMessage);
+            } else {
+                // Display error message
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+    </script>
+{%endblock content%}
