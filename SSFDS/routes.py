@@ -119,6 +119,21 @@ def allNgo():
         ngos=User.query.filter_by(ngo=True).all()
         return render_template('allNgos.html', ngos=ngos,title='All Ngo')
     
+@app.route("/allTransactions")
+@login_required
+def allTransactions():
+    if(current_user.is_authenticated and current_user.id!=1):
+        return redirect(url_for('home'))
+    else:
+        transactions=Transaction.query.all()
+        transactions.reverse()
+        setoforders=[]
+        for transaction in transactions:
+            orders=Order.query.filter_by(transactionID=transaction.id).all()
+            setoforders.append(orders)
+        size=len(transactions)
+        return render_template('allTransactions.html', transactions=transactions, size=size, setoforders=setoforders, title='All Ngo')
+    
 # Renders a page to change the time window for ordering food.
 
 # If the user is not admin, redirects to home page.
@@ -608,7 +623,6 @@ def OrderHistory():
         for transaction in transactions:
             orders=Order.query.filter_by(transactionID=transaction.id).all()
             setoforders.append(orders)
-            print(orders)
         size=len(transactions)
         return render_template('OrderHistory.html',title='Order History', setoforders=setoforders,transactions=transactions, size=size)
     elif isinstance(user, Restaurant) :
