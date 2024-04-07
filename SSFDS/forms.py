@@ -72,10 +72,6 @@ class LoginForm(FlaskForm):
     remember = BooleanField('Remember Me')
     submit = SubmitField('Login')
 
-def validate_location(self, email):
-        if current_user.latitude==None or current_user.longitude==None:
-            raise ValidationError('Please enter your location')
-
 # This form allows users to update their profile information. It validates that 
 # the username and email are unique, and that the current user's password is correct
 # if they are changing their password. It also requires the user to enter their 
@@ -88,7 +84,7 @@ class UpdateForm(FlaskForm):
     address = StringField('Address', validators=[DataRequired(), Length(min=10, max=200)])
     picture= FileField('Update Profile Picture', validators=[FileAllowed(['jpg', 'png', 'jpeg'])])
     recaptcha = RecaptchaField()
-    submit = SubmitField('Update', validators=[validate_location])
+    submit = SubmitField('Update')
     
     def validate_password(self, password):
         if not bcrypt.check_password_hash(current_user.password, password.data):
