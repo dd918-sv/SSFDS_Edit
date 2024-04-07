@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+{% block content %}
+    <article class="media content-section">
+        <img class="rounded-circle account-img" src="{{ url_for('static', filename='profile_pics/' + ngo.image) }}">
+        <div class="media-body">
+        <h2>{{ ngo.username }}</h2>
+        <p class="article-content">{{ ngo.email}}</p>
+        <p class="article-content">{{ ngo.address }}</p>
+        </div>
+    </article>
+    <div class="form-content-section">
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+            <fieldset class="form-group">
+                <legend class="border-bottom mb-4">Donate</legend>
+                <div class="form-group">
+                    {{ form.amount.label(class="form-control-label") }}
+                    {% if form.amount.errors %}
+                        {{ form.amount(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.amount.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.amount(class="form-control form-control-lg") }}
+                    {% endif %}
+                </div>
+            </fieldset>
+            <div class="form-group">
+                {{ form.submit(class="btn btn-outline-info") }}
+            </div>
+        </form>
+    </div>
+{% endblock content %}

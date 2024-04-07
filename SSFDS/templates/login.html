@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
-{% block content %}
-    <div class="content-section">
+{% block content %} 
+    <div class="form-content-section">
         <form method="POST" action="">
             {{ form.hidden_tag() }}
             <fieldset class="form-group">
@@ -44,9 +44,9 @@
             </small>
         </form>
     </div>
-    <div class="border-top pt-3">
-        <small class="text-muted">
-            Need An Account? <a class="ml-2" href="{{ url_for('register') }}">Sign Up Now</a>
+    <div class="border-top pt-3 bottom-margin">
+        <small class="link-attached">
+            New here? <a class="small-links" href="{{ url_for('register') }}">Sign Up Now</a>
         </small>
     </div>
 {% endblock content %}

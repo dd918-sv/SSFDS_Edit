@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container">
+    {% for restaurant in restaurants %}
+        <article class="media content-section card-format">
+          <img class="rounded-circle account-img" src="{{ url_for('static', filename='profile_pics/' + restaurant.image) }}">
+          <div class="media-body">
+            <h2>{{ restaurant.username }}</h2>
+            <p class="article-content">{{ restaurant.email }}</p>
+            <p class="article-content">{{ restaurant.address }}</p>
+          </div>
+        </article>
+    {% endfor %}
+</div>
+{% endblock %}
