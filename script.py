@@ -9,7 +9,7 @@ with app.app_context():
     user = User(id= 1, username="admin", email="admin@gmail.com", password=hashedPassword, address="admin address", ngo=False)
     db.session.add(user)
     db.session.commit()
-    time=Time(start=time(20, 0), end=time(23,59))
+    time=Time(start=time(0, 0), end=time(23,59))
     db.session.add(time)
     db.session.commit()
 
