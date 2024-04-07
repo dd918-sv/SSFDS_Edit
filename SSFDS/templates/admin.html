@@ -1,7 +1,20 @@
 {% extends "layout.html" %}
+
 {% block content %}
-<button type="button" class="btn btn-primary" onclick="window.location.href='{{ url_for('allRestaurants') }}'">All Restaurants</button><br><br>
-<button type="button" class="btn btn-primary" onclick="window.location.href='{{ url_for('allUsers') }}'">All Users</button><br><br>
-<button type="button" class="btn btn-primary" onclick="window.location.href='{{ url_for('allNgo') }}'">All NGOs</button><br><br>
-<button type="button" class="btn btn-primary" onclick="window.location.href='{{ url_for('changetimewindow') }}'">Change Registration Window</button><br>
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <button type="button" class="btn btn-primary btn-lg btn-block h-100" onclick="window.location.href='{{ url_for('allRestaurants') }}'">All Restaurants</button>
+        </div>
+        <div class="col-md-6 mb-3">
+            <button type="button" class="btn btn-primary btn-lg btn-block h-100" onclick="window.location.href='{{ url_for('allUsers') }}'">All Users</button>
+        </div>
+        <div class="col-md-6 mb-3">
+            <button type="button" class="btn btn-primary btn-lg btn-block h-100" onclick="window.location.href='{{ url_for('allNgo') }}'">All NGOs</button>
+        </div>
+        <div class="col-md-6 mb-3">
+            <button type="button" class="btn btn-primary btn-lg btn-block h-100" onclick="window.location.href='{{ url_for('changetimewindow') }}'">Change Registration Window</button>
+        </div>
+    </div>
+</div>
 {% endblock %}

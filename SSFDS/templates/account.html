@@ -10,7 +10,7 @@
         <button class="btn btn-outline-info" onclick="openMap()">Choose Location</button>
         <script>
             function openMap() {
-            window.open('/map', 'mapPopup', 'width=600,height=400');
+                window.open('/map', 'mapPopup', 'width=600,height=400');
             }
         </script>
       </div>
@@ -72,7 +72,9 @@
                 <div class="form-group">
                     {{ form.recaptcha.label }} {{ form.recaptcha() }}
                     {% if form.recaptcha.errors %}
-                        <small class="text-danger">{{ form.recaptcha.errors[0] }}</small>
+                        {% for error in form.recaptcha.errors %}
+                        <small class="text-danger">{{ error }}</small>
+                        {% endfor %}
                     {% endif %}
                 </div>
             </fieldset>
@@ -86,7 +88,7 @@
   </div>
 <!--edited-->
   {%if current_user.__class__.__name__=='Restaurant'%}
-        <h1>List of Food Items</h1>
+        <h1 class="main-headings">List of Food Items</h1>
         {%for dish in current_user.dishes%}
         <div class="content-section">
             <div class="media">
@@ -100,7 +102,7 @@
             </div>
         </div>
         {%endfor%}
-        <button><a href="{{url_for('addDish')}}" style="text-decoration: none;color: black;" >Add a dish</a></button>
+        <button class="custom-btn"><a href="{{url_for('addDish')}}" class="custom-btn-link" >Add a dish</a></button>
     {%endif%}
     <script>
         function deleteDish(dishId, restaurantId) {

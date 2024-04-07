@@ -1,3 +1,9 @@
+
+#Flask web application with routes for index, map, and location.
+#index() renders index.html template.
+#map() renders map.html template. 
+#location() handles POST request to /location, gets lat/lng from form, 
+#prints to console, and renders location_saved.html template.
 from flask import Flask, render_template, request
 
 app = Flask(__name__)

@@ -1,3 +1,7 @@
+# Initializes Flask app and extensions like SQLAlchemy, bcrypt, login manager,
+# and mail. Loads app config from config.py. Creates Flask app instance,
+# database instance, bcrypt instance, login manager instance, and mail instance.  
+# Imports routes after initialization to avoid circular imports.
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
@@ -5,6 +9,11 @@ from flask_login import LoginManager
 from flask_mail import Mail
 
 app = Flask(__name__)
+# Initializes Flask configuration from keys in config.py.
+
+# Sets the secret key, SQLAlchemy database URI, reCAPTCHA keys,
+# and mail server configuration. Creates instances of SQLAlchemy,  
+# Bcrypt, LoginManager, and Mail.
 app.config['SECRET_KEY'] = '5791628bb0b13ce0c676dfde280ba245'
 app.config['SQLALCHEMY_DATABASE_URI'] ='sqlite:///site.db'
 app.config['RECAPTCHA_PUBLIC_KEY'] = '6LfqZKEpAAAAABXmGAAsW6LwcsmYi59vm-I5H5HW'  # Replace with your reCAPTCHA public key

@@ -1,13 +1,21 @@
 {% extends 'layout.html' %}
 {% block content %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
 <div class="container">
     <h1 class="my-4">My Orders</h1>
-    <div class="card mb-3">
-        
+    <div class="card mb-3">   
         <div class="card-body">
             {% for order in orders %}
             <div class="row" id="order-{{ order.id }}">
                 <div class="col-md-4">
+                    <img class="rounded-circle account-img" src="{{ url_for('static', filename='dish_pics/' + order.dish.image) }}">
+
                     <h5 class="card-title">{{ order.dish.name }}</h5>
                     <p class="card-text text-muted">Description: {{ order.dish.description }}</p>
                 </div>
@@ -16,6 +24,7 @@
                         <div class="form-group">
                             <label for="quantity-{{ order.id }}">Quantity:</label>
                             <input type="number" id="quantity-{{ order.id }}" name="quantity" class="form-control quantity-input" value="{{ order.quantity }}" min="1" onchange="updatePrice('{{ order.id }}','{{order.dish.price}}')">
+                            <p>Quantity available: {{order.dish.quantityAvailable}} unit(s)</p>  <!-- edit -->
                         </div>
                         <button type="button" class="btn btn-danger" onclick="removeOrder('{{ order.id }}')">Remove</button>
                     </form>
@@ -69,6 +78,10 @@
             </div>
             <button type="button" class="btn btn-primary" onclick="placeOrder()">Place Order</button>
         </div>
+        <div class="form-group">
+            <label for="review">Overall Review (Optional):</label>
+            <textarea class="form-control" id="review" ></textarea>
+        </div>
     </div>
 </div>
 
@@ -87,7 +100,6 @@
         updateQuantity(orderId, quantity);
         updateTotalAmount();
     }
-
     function updateQuantity(orderId, quantity) {
         $.ajax({
             url: '/update_quantity',
@@ -123,6 +135,7 @@
 
         document.getElementById("totalAmount").textContent = total.toFixed(2);
         document.getElementById("discountedAmount").textContent = Math.ceil(total.toFixed(2)*(100-discount)/100);
+        updatePaymentOptions();
     }
 
     function toggleDeliveryCharges() {
@@ -136,7 +149,20 @@
         updateTotalAmount();
     }
 
+    function updatePaymentOptions() {
+        var selfPickupCheckbox = document.getElementById("selfPickupCheckbox");
+        var paymentMode = document.getElementById("paymentMode");
+        
+        if (selfPickupCheckbox.checked) {
+            paymentMode.value = "online";
+            document.getElementById("paymentMode").disabled = true;
+        } else {
+            document.getElementById("paymentMode").disabled = false;
+        }
+    }
+
     function placeOrder() {
+        var review = document.getElementById("review").value;
         var paymentMethod = document.getElementById("paymentMode").value;
         var selfPickupCheckbox = document.getElementById("selfPickupCheckbox");
         var deliveryCharge = parseFloat(document.getElementById("deliveryCharge").textContent);
@@ -150,17 +176,16 @@
             url: '/place_order',
             type: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({"payment_method": paymentMethod, "delivery_charge": deliveryCharge, "discounted_amount": discountedAmount}),
+            data: JSON.stringify({"payment_method": paymentMethod, "delivery_charge": deliveryCharge, "discounted_amount": discountedAmount,"review":review}),
             success: function(response) {
-                if (response.success && paymentMethod=="cash") {
-                    alert("Order placed successfully!");
+                if (response.success && response.check && paymentMethod=="cash") {
                     window.location.href = '/home'; // Redirect to home page
                 } 
-                else if(response.success && paymentMethod=="online"){
+                else if(response.success && response.check && paymentMethod=="online"){
                     window.location.href = '/payment/' + discountedAmount;
                 }
-                else {
-                    alert("Failed to place order. Please try again.");
+                else if(response.check==false){
+                    alert("Not enough quantity in stock for some itmes!. Please enter lesser quantity.");
                 }
             },
             error: function(xhr, status, error) {
@@ -169,6 +194,7 @@
         });
     }
     updateTotalAmount();
+
 </script>
 
 {% endblock %}

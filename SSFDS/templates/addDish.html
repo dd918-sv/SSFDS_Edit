@@ -1,6 +1,6 @@
 {%extends 'layout.html'%}
 {%block content%}
-    <div class="content-section">
+    <div class="form-content-section">
         <form action="" method="post" enctype="multipart/form-data">
             {{form.hidden_tag()}}
             <fieldset class="form-group">
@@ -27,6 +27,17 @@
                         </div>
                     {%else%}
                         {{form.price(class="form-control form-control-lg")}}
+                    {%endif%}
+                    {{form.quantity.label(class="form-control-label")}}
+                    {%if form.quantity.errors%}
+                        {{form.quantity(class="form-control form-control-lg is-invalid")}}
+                        <div class="invalid-feedback">
+                            {%for error in form.quantity.errors%}
+                                <span>{{error}}</span>
+                            {%endfor%}
+                        </div>
+                    {%else%}
+                        {{form.quantity(class="form-control form-control-lg")}}
                     {%endif%}
                     {{form.description.label(class="form-control-label")}}
                     {%if form.description.errors%}

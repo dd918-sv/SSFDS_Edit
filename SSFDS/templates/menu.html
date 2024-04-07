@@ -1,15 +1,18 @@
 {%extends 'layout.html'%}
 {%block content%}
-<h1 style="margin: auto;">Welcome to {{restaurant.username}}</h1>
+<h1 class="main-headings" style="margin: auto;">Welcome to {{restaurant.username}}</h1>
         {%for dish in dishes%}
-        <article class="media content-section"> 
-            <img class="square account-img" src="{{ url_for('static', filename='dish_pics/' + dish.image) }}">
+        <article class="media content-section">
             <div class="media-body">
+                <img class="rounded-circle account-img" src="{{ url_for('static', filename='dish_pics/' + dish.image) }}">
+
+                <div class="article-metadata">
                     <h2>{{ dish.name }}</h2>
                     <p class="article-content"><s style="color: red;">Original price: Rs. {{ dish.price }}</s></p>
                     <p class="article-content" style="color: green;">Discounted price: Rs. {{ dish.price*(100-discount)/100 }}</p>
-                    <p class="article-content">{{ dish.description }}</p>
-                    <button class="btn btn-outline-info" onclick="addToCart('{{restaurant.id}}','{{current_user.id}}','{{dish.id}}',this)">Add to Cart</button>
+                </div>
+                <p class="article-content">{{ dish.description }}</p>
+                <button class="btn btn-outline-info" onclick="addToCart('{{restaurant.id}}','{{current_user.id}}','{{dish.id}}',this)">Add to Cart</button>
             </div>
         </article>
     {%endfor%}

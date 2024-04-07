@@ -2,7 +2,7 @@
 {% block content %}
 <div class="container">
     {% for user in users %}
-        <article class="media content-section">
+        <article class="media content-section card-format">
           <img class="rounded-circle account-img" src="{{ url_for('static', filename='profile_pics/' + user.image) }}">
           <div class="media-body">
             <h2>{{ user.username }}</h2>

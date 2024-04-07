@@ -1,8 +1,6 @@
-
-
 {% extends 'layout.html' %}
 {% block content %}
-<h1>Order History</h1>
+<h1 class="main-headings">Order History</h1>
 {% for i in range(size) %}
 <div class="content-section">
     {% if current_user.is_authenticated %}
@@ -12,7 +10,7 @@
       <h2>{{ transactions[i].user.username }}</h2>
     {% endif %}
   {% endif %}
-    <h4><p class="article-content">Date: {{ transactions[i].date }}</p></h4>
+    <h4><p class="article-content">Date: {{ transactions[i].date.strftime('%H:%M %d-%m-%Y') }}</p></h4>
     <table class="table">
         <thead>
             <tr>
@@ -29,10 +27,18 @@
                 <td>{{ order.dish.price * order.quantity }}</td>
             </tr>
             {% endfor %}
+            <tr>
+                <td>Discount:</td>
+                <td></td>
+                <td>{{transactions[i].discount}}%</td>
+            </tr>
+            <tr>
+                <td>Amount Payed:</td>
+                <td></td>
+                <td>{{transactions[i].amount}}</td>
+            </tr>
         </tbody>
     </table>
-    <h4><p class="article-content">Discount Offered: {{ transactions[i].discount }} %</p></h4>
-    <h4><p class="article-content">Amount Payed: Rs. {{ transactions[i].amount }}</p></h4>
     <h4><p class="article-content">Payment Status: {{ transactions[i].paid }}</p></h4>
 </div>
 {% endfor %}

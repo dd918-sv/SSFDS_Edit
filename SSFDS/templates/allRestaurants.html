@@ -2,7 +2,7 @@
 {% block content %}
 <div class="container">
     {% for restaurant in restaurants %}
-        <article class="media content-section">
+        <article class="media content-section card-format">
           <img class="rounded-circle account-img" src="{{ url_for('static', filename='profile_pics/' + restaurant.image) }}">
           <div class="media-body">
             <h2>{{ restaurant.username }}</h2>

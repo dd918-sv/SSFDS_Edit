@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block content %}
     {% for ngo in ngos %}
-        <div class="content-section">
+        <article class="media content-section card-format" onclick="NGOpage('{{ngo.id}}')">
             <div class="media">
               <img class="rounded-circle account-img" src="{{ url_for('static', filename='profile_pics/' + ngo.image) }}">
               <div class="media-body">
@@ -10,9 +10,9 @@
                 <p class="text-secondary">{{ngo.address}}</p>
               </div>
             </div>
-        </div>
+        </article>
     {% endfor %}
-    <script>
+    <script> 
         function NGOpage(ngo_id){
           window.location.href = "/Donate/" + ngo_id;
         }
