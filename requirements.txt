@@ -1,0 +1,38 @@
+// python is needed to be installed to run with version atleast 3.10.12 or above
+
+bcrypt==4.1.2
+blinker==1.7.0
+click==8.1.7
+dnspython==2.6.1
+email_validator==2.1.1
+Flask==3.0.3
+Flask-Bcrypt==1.0.1
+Flask-Login==0.6.3
+Flask-Mail==0.9.1
+Flask-SQLAlchemy==3.1.1
+Flask-WTF==1.2.1
+greenlet==3.0.3
+idna==3.6
+itsdangerous==2.1.2
+Jinja2==3.1.3
+MarkupSafe==2.1.5
+pillow==10.3.0
+SQLAlchemy==2.0.29
+typing_extensions==4.11.0
+Werkzeug==3.0.2
+WTForms==3.1.2
+
+
+//commands to install the above dependencies
+pip install flask
+pip install flask_sqlalchemy
+pip install flask_bcrypt
+pip install flask_login
+pip install flask_mail
+pip install pillow
+pip install flask_wtf
+pip install email_validator
+
+//To run the program after fullfiling the above depencies-
+1) run script.py in terminal as python script.py / python3 script.py (if running for first time or EMPTYING THE DATABASE)
+2) run run.py in terminal as python run.py / python3 run.py
